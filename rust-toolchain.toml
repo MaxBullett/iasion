@@ -1,0 +1,4 @@
+# Pin to a specific version once the first crate exists.
+[toolchain]
+channel = "stable"
+components = ["rustfmt", "clippy"]

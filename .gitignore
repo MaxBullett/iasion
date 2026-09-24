@@ -1,0 +1,29 @@
+# --- Private financial data: never commit ---
+/fixtures/private/
+*.private.*
+
+# --- Secrets / environment ---
+.env
+.env.*
+!.env.example
+
+# --- Rust ---
+/target/
+**/*.rs.bk
+
+# --- Node / Vue ---
+node_modules/
+dist/
+.vite/
+*.local
+
+# --- Nix ---
+result
+result-*
+.direnv/
+
+# --- Editors / OS ---
+.idea/
+.vscode/
+*.swp
+.DS_Store
