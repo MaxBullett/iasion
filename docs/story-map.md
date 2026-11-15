@@ -268,7 +268,8 @@ Acceptance criteria:
 
 - Given spending of EUR 54.20 at Corner Grocer and the purpose "Groceries", when I
   assign it, then the assignment is on the flow of EUR +54.20 on Corner Grocer's
-  implicit account and has provenance: assigned by me, confirmed.
+  implicit account and has provenance: assigned by me, confirmed, with confidence
+  certain (ADR-0017).
 - Given a payment of EUR 80.00 from the joint current account with two flows on Corner
   Grocer's implicit account, EUR +50.00 and EUR +30.00, when I assign "Groceries" to
   the first and "Household goods" to the second, then each flow has its own purpose.
@@ -289,6 +290,12 @@ Acceptance criteria:
   the purpose and the other appears under "Unclassified".
 - Given a flow with a purpose, when a correction removes the flow or the transaction
   is voided, then the assignment is no longer current and is still stored.
+- Given a flow with a purpose, when a correction moves it to a household account, then
+  I am warned before saving, and afterwards the assignment is no longer current and
+  is still stored (ADR-0017).
+- Given a flow with a purpose, when I remove the purpose, then the flow appears under
+  "Unclassified" and the previous assignment is kept with its recorded time
+  (ADR-0017).
 
 ### S-011: Record a checkpoint
 

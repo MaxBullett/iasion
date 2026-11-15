@@ -6,7 +6,8 @@ Status: draft v0.5. Sections marked *(ADR-0007)* follow from
 [ADR-0013](adr/0013-signed-flows-on-accounts.md); the day boundary and occurred-at
 follow [ADR-0014](adr/0014-end-of-day-positions-and-occurred-at.md); the life of
 an opening balance follows [ADR-0015](adr/0015-life-of-an-opening-balance.md); flow
-identity follows [ADR-0016](adr/0016-purposes-on-counterparty-flows.md).
+identity follows [ADR-0016](adr/0016-purposes-on-counterparty-flows.md). Ending
+assignments follow ADR-0017.
 
 The kernel models money the way stock-flow consistent models do: everything is a stock
 held by a party, or a flow between stocks, and nothing appears or disappears without a

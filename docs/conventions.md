@@ -52,6 +52,8 @@ to avoid guessing.
   transactions, checkpoints). One that would is rejected with a typed error naming the
   conflicting facts. Dependent facts, such as dimension assignments on a transaction's
   flows, follow their parent (ADR-0015, ADR-0016).
+- A correction may change anything but the fact's identity, as long as the new version
+  satisfies all rules and breaks no independent fact (ADR-0017).
 - Queries use current knowledge (latest non-void version) by default. "As known on"
   queries select versions by recorded time.
 

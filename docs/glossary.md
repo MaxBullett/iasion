@@ -34,7 +34,8 @@ Kernel primitives are defined in detail in `docs/primitives.md`.
 - **Generator:** a process producing expected flows over time.
 - **Series:** a time-indexed value, observed or simulated.
 - **Dimension:** a tag orthogonal to structure (purpose, pool, tax category).
-- **Provenance:** who or what assigned a dimension, with confidence and confirmation status.
+- **Provenance:** who or what assigned a dimension, with confidence and confirmation
+  status. A manual assignment is confirmed, with confidence certain (ADR-0017).
 - **Constraint:** a predicate over positions and flows.
 - **Document:** evidence that facts are derived from.
 

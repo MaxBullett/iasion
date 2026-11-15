@@ -435,6 +435,12 @@ Still open:
   moving it to a household account: is the assignment dropped like that of a removed
   flow, or is the correction rejected?
 
+Update: these four are resolved by
+[ADR-0017](adr/0017-ending-assignments-and-limits-of-corrections.md):
+a purpose can be removed, leaving the flow Unclassified; a manual assignment has
+confidence certain; a correction may change anything but identity; a flow that can no
+longer carry a purpose loses its assignment, and the UI warns before saving.
+
 ## OQ-030: Concurrent corrections
 
 Raised by R1 event storming (H-15).
