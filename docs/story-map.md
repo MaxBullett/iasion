@@ -35,7 +35,7 @@ Onboarding follows [ADR-0007](adr/0007-onboarding-present-first.md).
 | A1.5 | Record flows | Income, spending, transfers between own accounts. | R1 |
 | A1.6 | Record checkpoints | Observed balances, compared against derived positions. | R1 |
 | A1.7 | Classify | Assign dimensions, confirm suggestions. | R1 (manual purpose only) |
-| A1.8 | Correct the past | Corrections are new facts with the correct valid time. | R1 (correct or void a flow) |
+| A1.8 | Correct the past | Corrections are new facts with the correct valid time. | R1 (correct or void a flow; correct household data) |
 | A1.9 | Register contracts | Each contract creates a contractual generator. | later |
 | A1.10 | Record valuations | | later |
 | A1.11 | Attach documents | | later |
@@ -434,3 +434,34 @@ Acceptance criteria:
 - Given a login identity that is mapped to a member, when I map it to another member,
   then it is rejected: a login identity belongs to one member. A member may have
   several login identities, or none.
+
+### S-015: Correct household data
+
+- Activity: A1. Task: A1.8 Correct the past. Release: R1.
+- As a household member, I want to fix a party, an account, ownership shares or a
+  purpose I entered wrongly, so that mistakes there do not stay in the figures either.
+
+Acceptance criteria:
+
+- Given party "Corner Grocer", when I correct its name, then views use the new name and
+  the earlier version is still stored with its recorded time.
+- Given the joint current account with shares 1/2 and 1/2, when I correct them to 3/5
+  and 2/5, then every member view uses 3/5 and 2/5 for all dates, including dates
+  before the correction was recorded.
+- Given that correction, when I view figures as known on a time before it was recorded,
+  then they use 1/2 and 1/2.
+- Given corrected shares that do not sum to 1, then the correction is rejected with a
+  typed error naming the actual sum.
+- Given a party of kind legal entity, when I correct its kind to system, then it is
+  rejected. The kind of a system party cannot be corrected either.
+- Given member Sam, when I try to make Sam a party outside the boundary, or party
+  "ACME GmbH" a member, then it is rejected.
+- Given a purpose with a current assignment, when I void it, then it is rejected with a
+  typed error naming the facts that refer to it.
+- Given a purpose that no current fact refers to, when I void it, then it can no longer
+  be assigned, and its versions are still stored.
+- Given an account with an opening balance, when I void the account, then it is
+  rejected. Given an account that no current fact refers to, then it is voided.
+- Given a party with a flow on its implicit account, when I void the party, then it is
+  rejected. Given a party that no current fact refers to, then it is voided together
+  with its implicit account.

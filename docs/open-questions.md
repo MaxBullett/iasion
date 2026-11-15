@@ -291,7 +291,16 @@ renaming a purpose (S-009). Open:
 - Purpose names are unique (S-009). How are names compared (case, surrounding
   whitespace), and does renaming to an existing name fail the same way?
 
-Status: open
+Status: decided in review in part, recorded in
+[ADR-0025](adr/0025-corrections-to-household-data.md): they are corrected as
+versions in R1; names freely; a corrected ownership share applies to all dates (shares
+with an effective date are parked as OQ-041); a party's kind cannot change to or from
+system, and a party cannot cross the boundary; voiding only while no current fact
+refers to it. Still open:
+
+- How purpose names are compared, and whether renaming to an existing name fails.
+- How an account, a member or a purpose that is in use is retired (closing an
+  account, a member leaving, a purpose no longer offered).
 
 ## OQ-024: Representation of ownership shares and rounding of attributed amounts
 
@@ -483,6 +492,7 @@ r1.md says R1 has no UI for recorded time. Open:
 - Recorded time is a UTC timestamp (`docs/conventions.md`). "As known on a date" needs
   a rule for which instant of which day is meant, including the time zone.
 - Do names, ownership shares and purposes also apply as known on that time (OQ-023)?
+  Yes (ADR-0025).
 
 Status: open
 
@@ -673,3 +683,15 @@ Login identities are managed in the app (ADR-0024). Open:
   history?
 
 Status: open
+
+## OQ-041: Ownership shares that change over time
+
+Raised in review of OQ-023 (H-31). For a later release.
+
+ADR-0025 corrects ownership shares retroactively: a correction says how it always
+was. A real change of ownership from a date on needs shares with an effective date.
+Attribution (ADR-0018, ADR-0019) would then use the shares valid on each flow's date,
+and a change of shares itself moves attributed positions between members. How is that
+shown?
+
+Status: open, parked

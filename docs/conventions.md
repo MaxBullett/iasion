@@ -59,6 +59,9 @@ to avoid guessing.
   flows, follow their parent (ADR-0015, ADR-0016).
 - A correction may change anything but the fact's identity, as long as the new version
   satisfies all rules and breaks no independent fact (ADR-0017).
+- Parties, accounts, ownership shares and purposes are versioned the same way. A
+  corrected ownership share applies to all dates; nothing has an effective date in R1
+  (ADR-0025).
 - Queries use current knowledge (latest non-void version) by default. "As known on"
   queries select versions by recorded time.
 

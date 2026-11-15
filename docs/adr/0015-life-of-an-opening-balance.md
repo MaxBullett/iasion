@@ -3,7 +3,7 @@
 - Status: accepted
 - Date: 2026-11-15
 - Refines: ADR-0010, ADR-0011
-- Refined by: ADR-0017
+- Refined by: ADR-0017, ADR-0025
 - Resolves: OQ-027, except accounts registered for parties outside the boundary
 
 ## Context

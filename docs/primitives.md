@@ -70,6 +70,9 @@ A container that holds positions. Owned by one or more parties with ownership sh
   two household accounts, not an outflow.
 - Shares are exact fractions and sum to exactly 1 per account
   ([ADR-0019](adr/0019-exact-shares-and-whole-minor-units.md)).
+- Parties, accounts, ownership shares and purposes are corrected as versions, like
+  facts. A corrected ownership share applies to all dates
+  ([ADR-0025](adr/0025-corrections-to-household-data.md)).
 - One party may own many accounts; one account may have many owners.
 - An implicit account is owned by its party alone. More specific accounts can be
   registered for a party outside the boundary, e.g. a loan account
