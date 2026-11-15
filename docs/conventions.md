@@ -37,7 +37,11 @@ to avoid guessing.
   - Transaction: flows net to zero per unit.
   - Account: ownership shares sum to 100%.
   - Contract: state is derived from terms plus lifecycle events.
-- Facts are append-only. Corrections are new facts with the correct valid time.
+- Facts are append-only. Each fact has a stable ID and versions over recorded time; a
+  correction is a new version, voiding is a final version marking it void. The
+  transaction, not the single flow, is the versioned unit (ADR-0010).
+- Queries use current knowledge (latest non-void version) by default. "As known on"
+  queries select versions by recorded time.
 
 ### Generators and projections
 
@@ -55,6 +59,58 @@ to avoid guessing.
 
 - The kernel knows nothing about plugins or jurisdictions.
 - Plugins depend on the kernel, never on each other unless explicitly declared.
+
+## Frontend (binding)
+
+Follows from [ADR-0008](adr/0008-responsive-web-no-native.md). The goal is a frontend
+that agents can render, inspect and test without a human clicking through it.
+Tool choices marked _open_ are settled when the frontend is scaffolded.
+
+### Where logic lives
+
+- Domain rules live in the backend. The frontend never re-implements a domain rule
+  (e.g. ownership attribution, netting); it displays what the API returns.
+- View logic (formatting, grouping, filtering, chart data shaping) lives in plain
+  TypeScript modules outside components, unit-tested with Vitest without rendering.
+- Components stay thin: props in, events out, minimal internal state.
+
+### Seeing components in isolation
+
+- Every reusable component and every screen has stories covering its relevant
+  states: empty, loading, error, typical data, edge cases (long names, negative
+  amounts, unknown or incomplete figures). Story tool: _open_ (Storybook or Histoire).
+- Stories and frontend tests run against a mocked API built from the same generated
+  API types as the real client, so they cannot drift. Mocking tool: _open_.
+- Fixture data for stories is synthetic. No personal data, as for all fixtures.
+
+### Testing interaction
+
+- End-to-end and interaction tests use Playwright.
+- Tests select elements by role and accessible name, not by CSS class or test IDs,
+  unless no accessible handle exists.
+- Agents inspect running pages through accessibility snapshots (e.g. Playwright MCP)
+  first, screenshots second.
+
+### Accessibility is part of the agent interface
+
+- Use semantic elements and ARIA only where semantics are missing. Every interactive
+  element has an accessible name.
+- Figures that are unknown or incomplete (ADR-0007) are exposed in text, not only
+  through colour or icons.
+
+### Charts
+
+- Chart data is shaped in tested TypeScript modules (see above); the chart component
+  only renders.
+- Charts expose their underlying values in an accessible form (e.g. a data table or
+  labelled summary), so agents and screen readers can verify them.
+- Visual regression screenshots are used for charts, where the accessibility tree
+  cannot show correctness. Elsewhere, prefer accessibility assertions.
+
+### Layout
+
+- Every screen works from phone width (360 px) up. Phone flows are designed, not
+  shrunk.
 
 ## Code conventions (deferred)
 

@@ -5,9 +5,10 @@ map. Everything below marked _provisional_ may change.
 
 ## Overview
 
-A Rust backend exposing an HTTP API, and a Vue 3 + TypeScript frontend that consumes a
-client generated from the backend's API description. Plugins are Rust crates compiled
-into the backend and do not ship UI.
+A Rust backend exposing an HTTP API, and a responsive Vue 3 + TypeScript web app
+(installable as a PWA, no native apps) that consumes a client generated from the
+backend's API description. Plugins are Rust crates compiled into the backend and do
+not ship UI.
 
 ## Bounded contexts (provisional)
 
@@ -38,6 +39,7 @@ See [docs/primitives.md](docs/primitives.md).
 |---|---|---|
 | Backend language | Rust | [ADR-0002](docs/adr/0002-rust-backend.md) |
 | Frontend | Vue 3, TypeScript | [ADR-0003](docs/adr/0003-vue-frontend.md) |
+| Frontend delivery | Responsive web app, PWA, no native or WASM | [ADR-0008](docs/adr/0008-responsive-web-no-native.md) |
 | Plugin mechanism | Compiled-in crates | [ADR-0005](docs/adr/0005-plugins-as-compiled-crates.md) |
 | Persistence | _open_ | OQ-006 |
 | Event sourcing scope | _proposed: contract lifecycles only_ | OQ-003 |

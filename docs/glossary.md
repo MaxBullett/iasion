@@ -7,7 +7,9 @@ Kernel primitives are defined in detail in `docs/primitives.md`.
 
 - **Party:** anything that can hold value or claims. Includes external counterparties.
 - **Aggregate party:** a party standing in for many small counterparties.
-- **Account:** a container at an institution holding positions, owned by one or more parties.
+- **Account:** a container holding positions, owned by one or more parties. Optionally
+  held at an institution: a bank account is, a physical cash wallet or a self-custodied
+  crypto wallet is not.
 - **Ownership share:** a party's fractional ownership of an account. Shares sum to 100%.
 - **Unit:** what is counted (currency, security units, property).
 - **Position:** a quantity of a unit held in an account at a point in time.
@@ -16,6 +18,12 @@ Kernel primitives are defined in detail in `docs/primitives.md`.
 - **Valuation:** an estimate of what a position is worth, at a date, from a source.
 - **Flow:** a movement of units between two positions at a valid time.
 - **Transaction:** a group of flows that nets to zero per unit.
+- **Aggregate flow:** a flow that stands in for many flows over a period, e.g. a month
+  of grocery spending entered as one amount. Its valid time is an interval, and it is
+  never prorated (ADR-0009).
+- **Transfer:** a flow between two household accounts. Not income or spending for the
+  household. A transaction may combine transfers with other flows, e.g. a cash
+  withdrawal (transfer) with a fee (flow to the bank).
 - **Generator:** a process producing expected flows over time.
 - **Series:** a time-indexed value, observed or simulated.
 - **Dimension:** a tag orthogonal to structure (purpose, pool, tax category).
@@ -38,13 +46,50 @@ Kernel primitives are defined in detail in `docs/primitives.md`.
 - **Boundary:** the line separating household parties from counterparties.
 - **Pool:** a dimension grouping positions and flows for a purpose, with an owner.
 - **Budget:** a constraint on a pool's flows.
+- **Between members:** in a member view, the net change in a member's attributed
+  positions caused by transfers between household accounts with different ownership.
+  Never in or out. Sums to zero across the household (ADR-0012).
 
 ## Time
 
-- **Valid time:** when something happened in the world.
+- **Valid time:** when something happened in the world: a civil date, or an interval of
+  civil dates for aggregate flows.
 - **Recorded time:** when the system learned about it.
 - **As-of date:** the date separating reconciled facts from projections in a computation.
+- **Version:** one recorded state of a fact. A fact has a stable ID and one or more
+  versions, each with its recorded time (ADR-0010).
+- **Correction:** a new version of a fact that replaces the previous one in current
+  views. Not a reversal entry.
+- **Void:** a final version marking a fact as not having happened. Voided facts affect
+  no current view.
 - **Reconciliation:** linking realized flows to the generator flows that predicted them.
+
+## Data quality
+
+From [ADR-0007](adr/0007-onboarding-present-first.md).
+
+- **Opening balance:** the positions of an account at a stated date, taken as given.
+  Recorded as a checkpoint plus a transaction against the opening party, so positions
+  remain the sum of flows (ADR-0011).
+- **Opening party:** the household's `system` party that is the counterparty of opening
+  balances. Outside the boundary; its flows never count as income or spending.
+- **System party:** a party that exists for bookkeeping, not in the world (opening
+  party, later the suspense party).
+- **Coverage:** for one account, the intervals of valid time and whether recorded flows
+  in each are complete, partial or unknown. Missing data is never read as zero.
+- **Checkpoint:** a position in an account observed at a date, e.g. a statement
+  balance. Derived positions are compared against it; it does not replace them.
+- **Suspense party:** the counterparty for flows that book unexplained differences
+  between a checkpoint and the derived position. Its balance, the suspense balance,
+  is a data quality metric.
+- **Classification coverage:** for a period, the extent to which its recorded flows
+  carry dimension assignments. Distinct from coverage, which is about whether flows
+  are recorded at all. How it is measured is open (OQ-013).
+- **Approximate (position):** a derived position whose as-of date falls strictly inside
+  the interval of an aggregate flow on that account (ADR-0009).
+- **Partial (figure):** a period figure known to exclude something it should contain,
+  e.g. an aggregate flow whose interval only partly overlaps the period, or a period
+  before an account's opening balance. Not to be confused with partial coverage.
 
 ## Projection
 

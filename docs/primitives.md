@@ -1,6 +1,8 @@
 # Kernel primitives
 
-Status: draft v0.2
+Status: draft v0.4. Sections marked *(ADR-0007)* follow from
+[ADR-0007](adr/0007-onboarding-present-first.md); their open details are listed in
+`docs/open-questions.md`.
 
 The kernel models money the way stock-flow consistent models do: everything is a stock
 held by a party, or a flow between stocks, and nothing appears or disappears without a
@@ -31,22 +33,39 @@ Anything that can hold value or claims: household members, the household itself,
 employers, banks, the state, legal entities, other private persons.
 
 - External parties are modeled explicitly so every flow is two-sided.
-- Parties have a kind (natural person, legal entity, institution, public body, aggregate).
+- Parties have a kind (natural person, legal entity, institution, public body,
+  aggregate, system). `system` parties exist for bookkeeping, not in the world, and are
+  never used for real counterparties.
+- Each household has one **opening party** (kind `system`, outside the boundary). It is
+  the counterparty of opening balances; flows against it never count as income or
+  spending ([ADR-0011](adr/0011-opening-balance-as-transaction.md)).
 - **Aggregate parties** (e.g. "various grocery merchants") keep capture overhead low
   without breaking two-sidedness.
 - A **boundary** defines which parties are inside the household for reporting. Parties
   outside it (e.g. a company owned by a member) appear as counterparties; consolidation
   is a later concern.
+- *(ADR-0007)* A **suspense party** is the counterparty for flows that book
+  unexplained differences at checkpoints. Its kind and scope are open (OQ-011).
 
 ## Account
 
-A container at an institution that holds positions. Owned by one or more parties with
-ownership shares.
+A container that holds positions. Owned by one or more parties with ownership shares.
 
+- The institution is optional. A bank or brokerage account has one; a physical cash
+  wallet or a self-custodied crypto wallet does not.
+- Cash is held in accounts like any other unit. Withdrawing cash is a transfer between
+  two household accounts, not an outflow.
 - Shares per account sum to 100%.
 - One party may own many accounts; one account may have many owners.
 - Attribution to members (e.g. for tax) runs through ownership shares, never through
   the account itself.
+- Each account has at most one **opening balance**: its positions at a stated date,
+  taken as given. It is recorded as a checkpoint plus a transaction against the
+  opening party, so positions at every date are the sum of flows
+  ([ADR-0011](adr/0011-opening-balance-as-transaction.md)).
+- *(ADR-0007)* Each account has **coverage** intervals, each marked
+  complete, partial or unknown. Accounts have independent opening balances and
+  coverage; there is no household-wide cutoff date.
 
 ## Unit
 
@@ -63,6 +82,9 @@ A party's holding of a quantity of a unit, inside an account, at a point in time
   a liability for the other.
 - A position has a **nominal value** and may have one or more **valuations**. These can
   differ materially (e.g. a claim against an entity that cannot repay it).
+- *(ADR-0007)* A **checkpoint** is an observed position, e.g. a statement
+  balance. It does not replace the derived position. A difference between the two is
+  booked as a flow against the suspense party (OQ-010).
 
 ## Flow and Transaction
 
@@ -70,8 +92,17 @@ A flow moves a quantity of a unit from one position to another at a valid time.
 A transaction groups flows.
 
 - **Invariant:** the flows of a transaction net to zero per unit.
-- Facts use exact decimals and are append-only. Corrections are new facts.
+- A transaction's valid time is a civil date or a closed interval of civil dates, and
+  all its flows share it. An **aggregate flow** uses an interval and stands in for many
+  flows over that period. It is never prorated: derived positions strictly inside the
+  interval are approximate, and period views that only partly overlap it are partial
+  ([ADR-0009](adr/0009-valid-time-intervals-for-aggregate-flows.md)).
+- Facts use exact decimals and are append-only. A correction is a new version of the
+  whole transaction; voiding is a final version marking it void
+  ([ADR-0010](adr/0010-corrections-as-versions.md)).
 - A realized flow may be linked to the generator that predicted it (reconciliation).
+- *(ADR-0007)* **Missing data is never zero.** An aggregate of flows over an
+  interval that is not completely covered is partial or unknown, and must say so.
 
 ## Generator
 
@@ -95,6 +126,13 @@ Control classification (orthogonal to kind):
 
 Generators read the world only through Series from the shared scenario engine.
 They never generate their own randomness.
+
+*(ADR-0007)* Statistical generators:
+
+- carry parameter uncertainty into projections. Parameter draws come from the
+  scenario engine, like all other randomness (OQ-014);
+- are fitted only on periods with sufficient classification coverage (OQ-013);
+- must not assume missingness is random (OQ-015).
 
 ## Series
 
@@ -155,4 +193,4 @@ Evidence that facts are derived from: statements, receipts, contracts, assessmen
 
 ## Open points
 
-See `docs/open-questions.md` (OQ-001, OQ-002).
+See `docs/open-questions.md` (OQ-001, OQ-002, OQ-009 to OQ-016).

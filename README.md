@@ -31,6 +31,7 @@ and domain modeling come before code.
 | [docs/glossary.md](docs/glossary.md) | Ubiquitous language |
 | [docs/conventions.md](docs/conventions.md) | Domain and code patterns |
 | [docs/story-map.md](docs/story-map.md) | User activities, tasks, stories |
+| [docs/releases/](docs/releases/) | Release definitions |
 | [docs/adr/](docs/adr/) | Architecture decision records |
 | [docs/open-questions.md](docs/open-questions.md) | Unresolved decisions |
 | [AGENTS.md](AGENTS.md) | Rules for AI coding agents (also `CLAUDE.md`) |
