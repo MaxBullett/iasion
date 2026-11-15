@@ -7,7 +7,7 @@ Status: draft v0.5. Sections marked *(ADR-0007)* follow from
 follow [ADR-0014](adr/0014-end-of-day-positions-and-occurred-at.md); the life of
 an opening balance follows [ADR-0015](adr/0015-life-of-an-opening-balance.md); flow
 identity follows [ADR-0016](adr/0016-purposes-on-counterparty-flows.md). Ending
-assignments and member attribution follow ADR-0017 and ADR-0018.
+assignments, member attribution and rounding follow ADR-0017 to ADR-0019.
 
 The kernel models money the way stock-flow consistent models do: everything is a stock
 held by a party, or a flow between stocks, and nothing appears or disappears without a
@@ -64,16 +64,19 @@ A container that holds positions. Owned by one or more parties with ownership sh
   wallet or a self-custodied crypto wallet does not.
 - Cash is held in accounts like any other unit. Withdrawing cash is a transfer between
   two household accounts, not an outflow.
-- Shares per account sum to 100%.
+- Shares are exact fractions and sum to exactly 1 per account
+  ([ADR-0019](adr/0019-exact-shares-and-whole-minor-units.md)).
 - One party may own many accounts; one account may have many owners.
 - An implicit account is owned by its party alone. More specific accounts can be
   registered for a party outside the boundary, e.g. a loan account
   ([ADR-0013](adr/0013-signed-flows-on-accounts.md)).
 - Attribution to members (e.g. for tax) runs through ownership shares, never through
   the account itself.
-- Money out is attributed to the members whose money paid it, money in to the members
-  whose account received it, and what remains of a member's change in positions is
-  between members ([ADR-0018](adr/0018-member-attribution-of-in-and-out.md)).
+- Attribution allocates each flow to members in whole minor units. Money out is
+  attributed to the members whose money paid it, money in to the members whose
+  account received it, and what remains of a member's change in positions is between
+  members ([ADR-0018](adr/0018-member-attribution-of-in-and-out.md),
+  [ADR-0019](adr/0019-exact-shares-and-whole-minor-units.md)).
 - Each account has at most one **opening balance**: its positions at the end of a
   stated date, taken as given. It is recorded as a checkpoint plus a transaction
   against the opening party, so positions at every date are the sum of flows

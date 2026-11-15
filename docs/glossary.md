@@ -10,11 +10,14 @@ Kernel primitives are defined in detail in `docs/primitives.md`.
 - **Account:** a container holding positions, owned by one or more parties. Optionally
   held at an institution: a bank account is, a physical cash wallet or a self-custodied
   crypto wallet is not.
-- **Ownership share:** a party's fractional ownership of an account. Shares sum to 100%.
+- **Ownership share:** a party's fractional ownership of an account, stored as an exact
+  fraction. The shares of an account sum to exactly 1 (ADR-0019).
 - **Implicit account:** the one account created automatically for each party outside
   the boundary, system parties included, and owned by it. When only a counterparty is
   named, the flow is on its implicit account (ADR-0013).
 - **Unit:** what is counted (currency, security units, property).
+- **Minor unit:** the smallest amount of a unit that is attributed to a member, e.g. the
+  cent for EUR (ADR-0019).
 - **Position:** a quantity of a unit held in an account at a point in time.
 - **Claim:** a position representing an obligation between two parties.
 - **Nominal value:** the contractual or face value of a position.

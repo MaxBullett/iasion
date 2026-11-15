@@ -109,6 +109,9 @@ Acceptance criteria:
   ownership shares 50% and 50%, then the account exists with both owners.
 - Given ownership shares that do not sum to 100%, when I register the account, then it
   is rejected with a typed error naming the actual sum.
+- Given members Alex and Sam, when I register an account with ownership shares 1/3 and
+  2/3, then it is accepted: shares are exact fractions that sum to exactly 1
+  (ADR-0019).
 - Given member Alex, when I register a cash wallet with no institution and Alex as sole
   owner, then the account exists.
 - Given any account in R1, when I look at its units, then it holds only EUR.
@@ -356,8 +359,10 @@ Acceptance criteria:
   and out view (ADR-0013).
 - Given flows on a system party's account (e.g. the opening party's, for opening
   balances), then they are excluded from every in and out view.
-- Given a flow from a joint account with shares 50/50, when I view per member, then each
-  member is attributed half.
+- Given spending of EUR 54.20 from the joint account with shares 50/50, when I view per
+  member, then each member shows out EUR 27.10.
+- Given spending of EUR 54.21 from that account, then one member shows out EUR 27.11
+  and the other EUR 27.10, and between members is zero for both (ADR-0019).
 - Given income of EUR 3,800.00 from ACME GmbH, of which EUR 3,000.00 arrive on Alex's
   current account and EUR 800.00 on the joint account, then in is EUR 3,400.00 for
   Alex and EUR 400.00 for Sam, and between members is zero (ADR-0018).
@@ -380,7 +385,7 @@ Acceptance criteria:
   +500, closing 4,700.
 - Given any period, then each member reconciles (opening + in - out + between members =
   closing), between-members lines sum to zero across the household, and members' in
-  and out sum to the household's in and out.
+  and out sum to the household's in and out, all in whole cents (ADR-0019).
 
 ### S-014: Sign in
 

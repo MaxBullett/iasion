@@ -291,7 +291,11 @@ Ownership shares sum to 100% and facts use exact decimals. Open:
 Whatever the answer, member figures must still sum to the household figures and
 between-members lines must sum to zero (S-012, S-013, ADR-0012).
 
-Status: open
+Status: resolved by
+[ADR-0019](adr/0019-exact-shares-and-whole-minor-units.md): shares are
+exact fractions summing to exactly 1; each flow is allocated to members in whole
+minor units by largest remainder, with a tie-break derived from the flow's ID; member
+figures are sums of these allocations.
 
 ## OQ-025: Shape of a flow and its counterparty end
 

@@ -20,6 +20,8 @@ to avoid guessing.
 ### Money and numbers
 
 - Facts use exact decimals. `Money` is `decimal + currency`.
+- Attribution to members allocates each flow in whole minor units by largest
+  remainder, so member figures sum exactly to household figures (ADR-0019).
 - Arithmetic across currencies is an error, never an implicit conversion.
 - Floating point is allowed only inside the projection layer. Conversion between
   exact and floating values happens at an explicit, named boundary.
@@ -41,8 +43,8 @@ to avoid guessing.
 
 - Invariants are enforced by the aggregate that owns them:
   - Transaction: flows net to zero per unit.
-  - Account: ownership shares sum to 100%; at most one non-void opening balance
-    (ADR-0015).
+  - Account: ownership shares are exact fractions that sum to exactly 1 (ADR-0019);
+    at most one non-void opening balance (ADR-0015).
   - Contract: state is derived from terms plus lifecycle events.
 - Facts are append-only. Each fact has a stable ID and versions over recorded time; a
   correction is a new version, voiding is a final version marking it void. The
