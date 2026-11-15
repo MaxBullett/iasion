@@ -208,3 +208,251 @@ represented, and can an opening balance be corrected the same way?
 
 Status: resolved by [ADR-0010](adr/0010-corrections-as-versions.md) (new version of
 the transaction; voiding is a final version; opening balances version the same way).
+
+## OQ-021: The first household, and mapping sign-ins to members
+
+Raised by R1 event storming (H-01, H-02).
+
+S-014 serves a request only if its Access email maps to a member. S-001 creates the
+household "given no household exists", when no member exists yet. Open:
+
+- Who may create the household, and how does the first member's email get mapped?
+- May an instance hold more than one household? Multi-household hosting is out of scope
+  (`goal-and-requirements.md`), but no spec says a second "create household" is
+  rejected.
+- Where does the email-to-member mapping live, and which command sets it: an attribute
+  of the member, a separate mapping, or instance configuration (r1.md: "No user
+  management in the app")? When a member is added (S-001), how do they become able to
+  sign in?
+- What is the member a request is served for used for in R1, beyond the provenance of
+  purpose assignments (S-010)? Does every version of a fact record which member
+  recorded it?
+- Are sign-ins or denied requests recorded?
+
+Related: the authentication enabler in r1.md (ADR to write).
+
+Status: open
+
+## OQ-022: Account owners, household accounts and the boundary
+
+Raised by R1 event storming (H-03, H-05).
+
+- May only members own accounts in R1, or any party: someone outside the household who
+  co-owns an account, or the household itself, which `docs/primitives.md` lists as a
+  party?
+- "Household account" is used by the glossary (transfer) and by S-007, S-012 and S-013,
+  but is not defined. If a non-member can hold a share, is an account with mixed
+  ownership a household account, and how do net worth and in and out treat the
+  non-member's share?
+- Is the boundary something a member changes, or in R1 simply the set of members?
+- Must an account's institution be a party of kind institution?
+
+Status: open
+
+## OQ-023: Correcting parties, accounts, ownership shares and purposes
+
+Raised by R1 event storming (H-04).
+
+S-008 corrects transactions and opening balances. ADR-0010 names transactions, opening
+balances, checkpoints and dimension assignments as versioned facts. Parties, accounts,
+ownership shares and purposes are not mentioned, and no story changes them except
+renaming a purpose (S-009). Open:
+
+- Is correcting a wrongly entered name, party kind, institution or ownership share part
+  of R1?
+- Are these versioned like facts (ADR-0010)? r1.md requires valid time and recorded
+  time on "every fact". Is a previous name kept?
+- A corrected ownership share changes every member view retroactively. Is that
+  intended, and how does it differ from a change of shares over time (later, ADR-0012)?
+- Closing an account, removing a member, retiring a purpose: confirm these are not R1.
+- Purpose names are unique (S-009). How are names compared (case, surrounding
+  whitespace), and does renaming to an existing name fail the same way?
+
+Status: open
+
+## OQ-024: Representation of ownership shares and rounding of attributed amounts
+
+Raised by R1 event storming (H-06).
+
+Ownership shares sum to 100% and facts use exact decimals. Open:
+
+- How is a share represented: a percentage with fixed precision, a fraction, something
+  else? Three equal owners cannot be written as decimals that sum to exactly 100%.
+- How are attributed amounts rounded? Half of EUR 54.21 is not a whole cent. Do member
+  figures keep sub-cent precision, or is there a rounding rule that allocates the
+  remainder?
+
+Whatever the answer, member figures must still sum to the household figures and
+between-members lines must sum to zero (S-012, S-013, ADR-0012).
+
+Status: open
+
+## OQ-025: Shape of a flow and its counterparty end
+
+Raised by R1 event storming (H-07).
+
+`docs/primitives.md`: "A flow moves a quantity of a unit from one position to another",
+and positions are held in accounts. The stories record flows "from ACME GmbH into the
+account" (S-005) and a transaction "between the account and the opening party" (S-004).
+Open:
+
+- Is a flow a movement with two ends, or a signed entry on one position, with the
+  transaction holding several? With two ends, every flow nets to zero by construction,
+  so the netting invariant can never fail and S-008's "a version that does not net to
+  zero is rejected" cannot occur. With signed entries, S-007's "the fee is a second
+  flow" no longer fits: a withdrawal with a fee is more than two entries.
+- What is the counterparty end: the party itself, or a position in an account of that
+  party? ADR-0011 speaks of the opening party's "balance per account".
+- Must every transaction have at least one end in a household account?
+- May a member be the counterparty end directly, e.g. money handed to Sam that enters
+  no registered account? Is that in, out or between members?
+
+Status: open
+
+## OQ-026: Day boundary of positions, opening balances and checkpoints
+
+Raised by R1 event storming (H-08).
+
+Valid time is a civil date. The stories imply that the derived position at a date
+includes the flows of that date (S-005). Open:
+
+- Is an opening balance at date D the balance before or after the flows dated D? S-005
+  rejects only flows dated before D, so flows dated D are added on top, which reads as
+  "before". A statement's closing balance for D would then have to be entered at D+1.
+  And once a flow dated D exists, the derived position at D no longer equals the
+  opening checkpoint (S-004, ADR-0011).
+- Is a checkpoint at D compared with the position including all flows dated D (S-011
+  suggests so)? Then opening balances and other checkpoints use different boundaries,
+  although an opening balance is a checkpoint (ADR-0011).
+- ADR-0009 marks positions approximate for as-of dates "strictly inside" an aggregate
+  flow's interval. On the interval's first day the aggregate is excluded as well, and
+  spending may already have happened. Exact or approximate?
+- In period views, is a member's opening figure (S-013, ADR-0012) the position at the
+  end of the day before the period, or at the start of its first day? The ADR-0012
+  example shows an opening of 2,000 for October.
+- If the answer follows a banking convention (e.g. statement balances are end-of-day
+  balances), it needs a primary source (`AGENTS.md`, rule 2).
+
+Status: open
+
+## OQ-027: Life of an opening balance, and accounts without one
+
+Raised by R1 event storming (H-09, H-10).
+
+- An opening balance is corrected to a later date than flows or checkpoints already
+  recorded on the account. Rejected, or what happens to those facts? (ADR-0011 only
+  covers moving it earlier, as backfill.)
+- May an opening balance be voided while the account has flows or checkpoints? After
+  voiding, may a new one be recorded ("at most one", S-004)?
+- Is an opening balance one fact with its own identity (ADR-0010 lists it as a kind of
+  fact) or two linked facts, a checkpoint and a transaction (ADR-0011: "a new version
+  of the opening transaction and its checkpoint")? Which identity does a correction
+  target, and which aggregate enforces "at most one per account"?
+- An account without an opening balance: is a flow that touches it rejected or
+  accepted? OQ-019 only settled flows dated before an existing opening balance. This
+  includes being the destination of a transfer. Is a checkpoint on it accepted?
+- An aggregate flow whose interval starts before the opening date and ends after it:
+  rejected as a whole?
+
+Status: open
+
+## OQ-028: Limits on recorded values
+
+Raised by R1 event storming (H-11).
+
+No spec states a rule for:
+
+- Valid time after the day of recording: a flow or checkpoint dated in the future, or a
+  view with an as-of date in the future. Domain code never reads the clock
+  (`docs/conventions.md`), so any rule needs "now" as an input.
+- A flow with amount zero, or an opening balance of zero.
+- Negative derived positions. An overdraft is plausible; a cash wallet cannot be
+  negative in the world, but rejecting it would make the order of entry matter.
+- Two checkpoints for the same account and date.
+
+Status: open
+
+## OQ-029: Flow identity across transaction versions, and purpose assignments
+
+Raised by R1 event storming (H-14).
+
+A purpose is assigned to a flow (S-010) and the assignment is a versioned fact of its
+own (ADR-0010). The transaction is the versioned unit, and a correction restates the
+whole transaction (ADR-0010). Open:
+
+- Does a flow keep a stable identity across versions of its transaction?
+- What happens to a flow's assignment when a correction changes its amount, replaces
+  its counterparty, removes it or splits it in two?
+- What happens to the assignments of a voided transaction?
+- Is there a limit to what a correction may change (accounts, parties, valid time,
+  number of flows), or is the fact's ID the only thing that stays?
+- Which flows may carry a purpose? Transfers and flows against a system party are
+  excluded from in and out (S-013). Is assigning a purpose to them rejected, or
+  accepted and ignored?
+- Removing a purpose without replacing it: is that voiding the assignment?
+- Provenance includes a confidence (glossary). What is it for a manual assignment?
+
+Status: open
+
+## OQ-030: Concurrent corrections
+
+Raised by R1 event storming (H-15).
+
+Two members may correct or void the same fact, or record an opening balance for the
+same account, at the same time. Must a correction name the version it replaces and be
+rejected when that version is no longer current? Otherwise the last one silently wins.
+
+Status: open
+
+## OQ-031: "As known on" in R1
+
+Raised by R1 event storming (H-16).
+
+S-008 requires viewing "figures as known on a date before the correction was recorded".
+r1.md says R1 has no UI for recorded time. Open:
+
+- Is "as known on" available through the API only in R1, or does S-008 need a UI?
+- Recorded time is a UTC timestamp (`docs/conventions.md`). "As known on a date" needs
+  a rule for which instant of which day is meant, including the time zone.
+- Do names, ownership shares and purposes also apply as known on that time (OQ-023)?
+
+Status: open
+
+## OQ-032: Finding recorded transactions
+
+Raised by R1 event storming (H-17).
+
+Correcting a flow (S-008), assigning a purpose (S-010), recording the flows missing at
+a checkpoint (S-011) and the R1 done criterion "every checkpoint difference can be
+explained" all presuppose that a member can find recorded transactions, e.g. per
+account and period. No R1 story provides that. Is a story missing, or is it meant to be
+part of an existing one?
+
+Also: no story gives a transaction a free-text note. Intended?
+
+Status: open
+
+## OQ-033: Figure states and other open points in the R1 views
+
+Raised by R1 event storming (H-21, H-22).
+
+- Figures can be exact, approximate, partial or unknown (ADR-0009). How do these
+  combine in a total? S-012 only says approximate propagates. What is net worth when
+  one account is unknown (as-of date before its opening balance)? The glossary defines
+  partial for period figures only.
+- S-013: for a period starting before an account's opening balance, "the figures for
+  that account are partial". The view is grouped by purpose, not by account. Which
+  figures are marked?
+- ADR-0012 requires opening + in - out + between members = closing. If an opening
+  balance falls inside the period, its flow is excluded from in (ADR-0011), so the
+  identity cannot hold unless the opening figure is unknown or the flow shows on some
+  line. This is the normal case in a household's first month. Related: OQ-026.
+- S-012 shows a difference for an account's "latest checkpoint". Latest overall, or
+  latest at or before the as-of date? What if an earlier checkpoint has a difference
+  and a later one has none?
+- A refund is a new transaction (ADR-0010). In in and out, is it an inflow under its
+  purpose, or does it reduce the outflow?
+- The stories say "income" and "spending" (S-005, S-006, ADR-0011) as well as "in" and
+  "out" (S-013, ADR-0012). Are these the same, and which terms go into the glossary?
+
+Status: open
