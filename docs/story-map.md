@@ -74,8 +74,13 @@ Cross-cutting stories that belong to no activity are marked with activity `-`.
 
 Acceptance criteria:
 
-- Given no household exists, when I create a household with members "Alex" and
-  "Sam", then both are member parties inside the boundary.
+- Given no household exists and a request from the email named for first setup, when I
+  run first setup with member "Alex", then the household exists, Alex is a member
+  party inside the boundary, and that email is mapped to Alex (ADR-0024).
+- Given no household exists and a request from any other email, then first setup is
+  refused.
+- Given a household exists, when first setup is run again, then it is rejected: an
+  instance holds one household (ADR-0024).
 - Given a household exists, when I add a member, then the new member is inside the
   boundary and existing facts are unchanged.
 - Given a member, when I look at their party kind, then it is natural person.
@@ -418,8 +423,14 @@ Acceptance criteria:
 
 Acceptance criteria:
 
-- Given a request with a valid Cloudflare Access JWT for an email mapped to a member,
-  then the request is served in that member's context.
+- Given a request with a valid Cloudflare Access JWT for an email that is a login
+  identity of a member, then the request is served in that member's context.
 - Given a request without a valid Access JWT, then it is rejected, even if an email
   header is present.
 - Given a valid Access JWT for an email not mapped to any member, then access is denied.
+- Given member Sam without a login identity, when I map an email to Sam as a login
+  identity, then requests with a valid Access JWT for that email are served in Sam's
+  context (ADR-0024).
+- Given a login identity that is mapped to a member, when I map it to another member,
+  then it is rejected: a login identity belongs to one member. A member may have
+  several login identities, or none.

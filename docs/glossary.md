@@ -62,6 +62,9 @@ Kernel primitives are defined in detail in `docs/primitives.md`.
 - **Member:** a natural person inside the household.
 - **Boundary:** the line separating household parties from counterparties. In R1 it is
   the set of members (ADR-0023).
+- **Login identity:** what a signed-in request is known by, in R1 the email verified by
+  Cloudflare Access. It maps to exactly one member; a member may have several, or none
+  (ADR-0024).
 - **Pool:** a dimension grouping positions and flows for a purpose, with an owner.
 - **Budget:** a constraint on a pool's flows.
 - **Between members:** in a member view, what remains of the change in a member's

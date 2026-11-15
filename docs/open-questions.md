@@ -239,7 +239,16 @@ household "given no household exists", when no member exists yet. Open:
 
 Related: the authentication enabler in r1.md (ADR to write).
 
-Status: open
+Status: decided in review in part, recorded in
+[ADR-0024](adr/0024-first-setup-and-login-identities.md): an environment
+variable names the email allowed to run first setup; setup creates the household and
+the first member; login identities map to members, are kept on their own and are
+managed in the app; a second household is rejected. Still open:
+
+- Does every version of a fact record which member recorded it? What else is the
+  acting member used for in R1?
+- Are sign-ins or denied requests recorded?
+- What happens when no login identity is left: OQ-040.
 
 ## OQ-022: Account owners, household accounts and the boundary
 
@@ -649,3 +658,18 @@ ADR-0023 rejects mixed ownership in R1. When it is allowed, how do net worth, in
 out, transfers and member attribution treat the share held outside the boundary?
 
 Status: open, parked until the consolidation release
+
+## OQ-040: No login identity left
+
+Raised in review of OQ-021 (H-30).
+
+Login identities are managed in the app (ADR-0024). Open:
+
+- May the last login identity of the last member who can sign in be removed? If it is,
+  nobody can reach the household's data.
+- Does the email named for first setup keep any role after setup, e.g. to recover from
+  that?
+- Is a login identity versioned like other facts, and is a removed one kept in
+  history?
+
+Status: open
