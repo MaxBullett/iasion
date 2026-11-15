@@ -30,3 +30,4 @@ supersedes the old one and update the old one's status.
 | [0020](0020-reconciliation-line-per-system-party.md) | The reconciliation has one line per system party | Accepted |
 | [0021](0021-figures-carry-flags.md) | Figures carry flags, and a total takes the union | Accepted |
 | [0022](0022-in-out-and-income-spending.md) | In and out are kernel terms; income and spending are view terms, netted per purpose | Accepted |
+| [0023](0023-household-accounts-owned-by-members.md) | In R1 a household account is owned by members only, and the household is not a party | Accepted |

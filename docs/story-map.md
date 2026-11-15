@@ -114,6 +114,9 @@ Acceptance criteria:
   (ADR-0019).
 - Given member Alex, when I register a cash wallet with no institution and Alex as sole
   owner, then the account exists.
+- Given member Alex and party "ACME GmbH", when I register an account owned by both,
+  then it is rejected with a typed error: the owners of an account are either all
+  members or all outside the boundary (ADR-0023).
 - Given any account in R1, when I look at its units, then it holds only EUR.
 
 ### S-004: Record an opening balance

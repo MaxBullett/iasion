@@ -34,8 +34,9 @@ primitives. Users and most code should never see `Generator<Flow<Unit>>`.
 
 ## Party
 
-Anything that can hold value or claims: household members, the household itself,
-employers, banks, the state, legal entities, other private persons.
+Anything that can hold value or claims: household members, employers, banks, the
+state, legal entities, other private persons. The household itself is not a party
+([ADR-0023](adr/0023-household-accounts-owned-by-members.md)).
 
 - External parties are modeled explicitly so every transaction is two-sided.
 - Every party can own accounts. Each party outside the boundary, system parties
@@ -53,6 +54,9 @@ employers, banks, the state, legal entities, other private persons.
 - A **boundary** defines which parties are inside the household for reporting. Parties
   outside it (e.g. a company owned by a member) appear as counterparties; consolidation
   is a later concern.
+- In R1 the boundary is the set of members, and an account is owned either by members
+  only (a household account) or by parties outside the boundary only
+  ([ADR-0023](adr/0023-household-accounts-owned-by-members.md)).
 - *(ADR-0007)* A **suspense party** is the counterparty for flows that book
   unexplained differences at checkpoints. Its kind and scope are open (OQ-011).
 

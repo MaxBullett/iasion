@@ -15,6 +15,8 @@ Kernel primitives are defined in detail in `docs/primitives.md`.
 - **Implicit account:** the one account created automatically for each party outside
   the boundary, system parties included, and owned by it. When only a counterparty is
   named, the flow is on its implicit account (ADR-0013).
+- **Household account:** an account all of whose owners are members. An account owned
+  by a member together with a party outside the boundary is rejected in R1 (ADR-0023).
 - **Unit:** what is counted (currency, security units, property).
 - **Minor unit:** the smallest amount of a unit that is attributed to a member, e.g. the
   cent for EUR (ADR-0019).
@@ -58,7 +60,8 @@ Kernel primitives are defined in detail in `docs/primitives.md`.
 
 - **Household:** the set of member parties inside the reporting boundary.
 - **Member:** a natural person inside the household.
-- **Boundary:** the line separating household parties from counterparties.
+- **Boundary:** the line separating household parties from counterparties. In R1 it is
+  the set of members (ADR-0023).
 - **Pool:** a dimension grouping positions and flows for a purpose, with an owner.
 - **Budget:** a constraint on a pool's flows.
 - **Between members:** in a member view, what remains of the change in a member's

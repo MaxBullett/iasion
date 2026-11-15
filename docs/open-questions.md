@@ -257,7 +257,11 @@ remains:
 - Is the boundary something a member changes, or in R1 simply the set of members?
 - Must an account's institution be a party of kind institution?
 
-Status: open
+Status: decided in review except for the last point, recorded in
+[ADR-0023](adr/0023-household-accounts-owned-by-members.md): a household
+account is an account all of whose owners are members; mixed ownership is rejected in
+R1 (parked as OQ-039); the household is not a party; the boundary is the set of
+members. Still open: whether an institution must be a party of kind institution.
 
 ## OQ-023: Correcting parties, accounts, ownership shares and purposes
 
@@ -636,3 +640,12 @@ received), although the household is no richer or poorer. Open:
   unit, which R1 does not have.
 
 Status: open, parked until the investment release
+
+## OQ-039: Accounts owned by a member together with a party outside the boundary
+
+Raised in review of OQ-022 (H-29). For the consolidation release.
+
+ADR-0023 rejects mixed ownership in R1. When it is allowed, how do net worth, in and
+out, transfers and member attribution treat the share held outside the boundary?
+
+Status: open, parked until the consolidation release
