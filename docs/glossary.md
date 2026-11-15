@@ -60,7 +60,10 @@ Kernel primitives are defined in detail in `docs/primitives.md`.
 ## Time
 
 - **Valid time:** when something happened in the world: a civil date, or an interval of
-  civil dates for aggregate flows.
+  civil dates for aggregate flows. Never a time of day (ADR-0014).
+- **Occurred-at:** an optional UTC instant on a transaction, given only when its source
+  provides one. Orders transactions within one valid date; never changes the valid
+  date (ADR-0014).
 - **Recorded time:** when the system learned about it.
 - **As-of date:** the date separating reconciled facts from projections in a computation.
 - **Version:** one recorded state of a fact. A fact has a stable ID and one or more
@@ -75,7 +78,8 @@ Kernel primitives are defined in detail in `docs/primitives.md`.
 
 From [ADR-0007](adr/0007-onboarding-present-first.md).
 
-- **Opening balance:** the positions of an account at a stated date, taken as given.
+- **Opening balance:** the positions of an account at the end of a stated date, taken
+  as given.
   Recorded as a checkpoint plus a transaction against the opening party, so positions
   remain the sum of flows (ADR-0011).
 - **Opening party:** the household's `system` party that is the counterparty of opening
@@ -85,16 +89,17 @@ From [ADR-0007](adr/0007-onboarding-present-first.md).
   party, later the suspense party).
 - **Coverage:** for one account, the intervals of valid time and whether recorded flows
   in each are complete, partial or unknown. Missing data is never read as zero.
-- **Checkpoint:** a position in an account observed at a date, e.g. a statement
-  balance. Derived positions are compared against it; it does not replace them.
+- **Checkpoint:** a position in an account observed at the end of a date, e.g. a
+  statement balance. Derived positions are compared against it; it does not replace them.
 - **Suspense party:** the counterparty for flows that book unexplained differences
   between a checkpoint and the derived position. Its balance, the suspense balance,
   is a data quality metric.
 - **Classification coverage:** for a period, the extent to which its recorded flows
   carry dimension assignments. Distinct from coverage, which is about whether flows
   are recorded at all. How it is measured is open (OQ-013).
-- **Approximate (position):** a derived position whose as-of date falls strictly inside
-  the interval of an aggregate flow on that account (ADR-0009).
+- **Approximate (position):** a derived position whose as-of date is on or after the
+  first day and before the last day of the interval of an aggregate flow on that
+  account (ADR-0009, ADR-0014).
 - **Partial (figure):** a period figure known to exclude something it should contain,
   e.g. an aggregate flow whose interval only partly overlaps the period, or a period
   before an account's opening balance. Not to be confused with partial coverage.

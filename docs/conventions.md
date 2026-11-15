@@ -27,7 +27,13 @@ to avoid guessing.
 
 ### Time
 
-- Valid time uses civil dates (no timezone).
+- Valid time uses civil dates (no timezone): a date, or an interval of dates. A time of
+  day that the source does not provide is never invented (ADR-0014).
+- A position, opening balance or checkpoint at a date is the end-of-day state of that
+  date: it includes every flow with a valid date on or before it (ADR-0014).
+- A transaction may carry an optional occurred-at, a UTC timestamp, only when its
+  source provides one. It orders transactions within one valid date and never changes
+  the valid date (ADR-0014).
 - Recorded time uses UTC timestamps.
 - Domain code never reads the system clock. The as-of date and "now" are inputs.
 

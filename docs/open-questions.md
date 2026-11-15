@@ -197,6 +197,10 @@ positions? Proposed for R1: rejected, with a typed error.
 Status: resolved. Rejected with a typed error in R1 (S-005); backfill later is a
 correction of the opening balance ([ADR-0011](adr/0011-opening-balance-as-transaction.md)).
 
+Update: [ADR-0014](adr/0014-end-of-day-positions-and-occurred-at.md)
+makes an opening balance the end-of-day balance of its date, so a flow dated on or
+before it is rejected, not only one dated before it.
+
 ## OQ-020: Correcting a flow
 
 Facts are append-only and corrections are new facts (`docs/conventions.md`). For a
@@ -338,7 +342,13 @@ includes the flows of that date (S-005). Open:
 - If the answer follows a banking convention (e.g. statement balances are end-of-day
   balances), it needs a primary source (`AGENTS.md`, rule 2).
 
-Status: open
+Status: resolved by [ADR-0014](adr/0014-end-of-day-positions-and-occurred-at.md):
+one rule,
+end of day. A position at a date includes every flow dated on or before it; opening
+balances and checkpoints are end-of-day balances; flows are dated after the opening
+balance; positions are approximate from the first day of an aggregate interval up to,
+but not including, its last; a period's opening figure is the position on the day
+before it. This is Iasion's own definition, not a banking convention.
 
 ## OQ-027: Life of an opening balance, and accounts without one
 
@@ -356,8 +366,9 @@ Raised by R1 event storming (H-09, H-10).
 - An account without an opening balance: is a flow that touches it rejected or
   accepted? OQ-019 only settled flows dated before an existing opening balance. This
   includes being the destination of a transfer. Is a checkpoint on it accepted?
-- An aggregate flow whose interval starts before the opening date and ends after it:
-  rejected as a whole?
+- An aggregate flow whose interval starts on or before the opening date and ends after
+  it: rejected as a whole? ADR-0014 says yes: the interval must start after the
+  opening date.
 - Implicit accounts have no opening balance and accept flows without one (ADR-0013).
   Do the opening-balance rules apply to accounts registered for a party outside the
   boundary (e.g. a loan account), or to household accounts only?
@@ -376,7 +387,8 @@ No spec states a rule for:
 - A flow with amount zero, or an opening balance of zero.
 - Negative derived positions. An overdraft is plausible; a cash wallet cannot be
   negative in the world, but rejecting it would make the order of entry matter.
-- Two checkpoints for the same account and date.
+- Two checkpoints for the same account and date. This includes a checkpoint on the
+  date of the opening balance, whose difference no flow could explain (ADR-0014).
 
 Status: open
 
@@ -450,10 +462,10 @@ Raised by R1 event storming (H-21, H-22).
 - S-013: for a period starting before an account's opening balance, "the figures for
   that account are partial". The view is grouped by purpose, not by account. Which
   figures are marked?
-- ADR-0012 requires opening + in - out + between members = closing. If an opening
-  balance falls inside the period, its flow is excluded from in (ADR-0011), so the
-  identity cannot hold unless the opening figure is unknown or the flow shows on some
-  line. This is the normal case in a household's first month. Related: OQ-026.
+- ADR-0012 requires opening + in - out + between members = closing. With ADR-0014 this
+  holds for a period that starts after every opening balance. If a period starts on or
+  before an account's opening balance, the opening figure is unknown and the opening
+  flow is excluded from in (ADR-0011). What does the member view show then?
 - S-012 shows a difference for an account's "latest checkpoint". Latest overall, or
   latest at or before the as-of date? What if an earlier checkpoint has a difference
   and a later one has none?
@@ -513,3 +525,38 @@ Which member is each of them attributed to?
 - Does ADR-0012 need a successor?
 
 Status: open
+
+## OQ-036: Order of same-day transactions without an occurred-at
+
+Raised in review of OQ-026. For the investment release.
+
+ADR-0014 lets a transaction carry an optional occurred-at, which orders transactions
+within one valid date. When the source gives none, the order of several buys and sells
+of one security on the same date is not defined, and lot matching depends on it. Open:
+
+- What decides the order then (e.g. order of recording, order in the source document,
+  a sequence stated by the user), or is a method used that does not depend on it?
+- How do transactions with and without an occurred-at on the same date order relative
+  to each other?
+- A lot matching method prescribed by tax law is a domain rule and needs a primary
+  source (`AGENTS.md`, rule 2).
+
+Status: open, parked until the investment release
+
+## OQ-037: Booking date and value date in imports
+
+Raised in review of OQ-026 (H-26). For R2.
+
+Bank statements distinguish a booking date and a value date, and statement balances
+follow the booking date. This is stated by the domain expert; once it becomes a rule in
+a spec it needs a primary source (`AGENTS.md`, rule 2). Open:
+
+- Which of the two dates becomes the valid time of an imported transaction? With the
+  value date, positions derived at a date would not match statement balances at that
+  date, and checkpoints would show differences around it.
+- Is the other date kept, and where?
+- Does the answer differ per importer or source?
+
+Related: ADR-0014, OQ-010.
+
+Status: open, parked until R2

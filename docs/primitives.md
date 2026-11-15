@@ -3,7 +3,8 @@
 Status: draft v0.5. Sections marked *(ADR-0007)* follow from
 [ADR-0007](adr/0007-onboarding-present-first.md); their open details are listed in
 `docs/open-questions.md`. Flows follow
-[ADR-0013](adr/0013-signed-flows-on-accounts.md).
+[ADR-0013](adr/0013-signed-flows-on-accounts.md); the day boundary and occurred-at
+follow [ADR-0014](adr/0014-end-of-day-positions-and-occurred-at.md).
 
 The kernel models money the way stock-flow consistent models do: everything is a stock
 held by a party, or a flow between stocks, and nothing appears or disappears without a
@@ -67,10 +68,11 @@ A container that holds positions. Owned by one or more parties with ownership sh
   ([ADR-0013](adr/0013-signed-flows-on-accounts.md)).
 - Attribution to members (e.g. for tax) runs through ownership shares, never through
   the account itself.
-- Each account has at most one **opening balance**: its positions at a stated date,
-  taken as given. It is recorded as a checkpoint plus a transaction against the
-  opening party, so positions at every date are the sum of flows
-  ([ADR-0011](adr/0011-opening-balance-as-transaction.md)).
+- Each account has at most one **opening balance**: its positions at the end of a
+  stated date, taken as given. It is recorded as a checkpoint plus a transaction
+  against the opening party, so positions at every date are the sum of flows
+  ([ADR-0011](adr/0011-opening-balance-as-transaction.md)). All other flows on the
+  account are dated after it ([ADR-0014](adr/0014-end-of-day-positions-and-occurred-at.md)).
 - *(ADR-0007)* Each account has **coverage** intervals, each marked
   complete, partial or unknown. Accounts have independent opening balances and
   coverage; there is no household-wide cutoff date.
@@ -90,8 +92,8 @@ A party's holding of a quantity of a unit, inside an account, at a point in time
   a liability for the other.
 - A position has a **nominal value** and may have one or more **valuations**. These can
   differ materially (e.g. a claim against an entity that cannot repay it).
-- *(ADR-0007)* A **checkpoint** is an observed position, e.g. a statement
-  balance. It does not replace the derived position. A difference between the two is
+- *(ADR-0007)* A **checkpoint** is a position observed at the end of a date, e.g. a
+  statement balance. It does not replace the derived position. A difference between the two is
   booked as a flow against the suspense party (OQ-010).
 
 ## Flow and Transaction
@@ -110,9 +112,13 @@ signed amount. A positive amount increases the position. A transaction groups fl
   of a transaction. It is never stored.
 - A transaction's valid time is a civil date or a closed interval of civil dates, and
   all its flows share it. An **aggregate flow** uses an interval and stands in for many
-  flows over that period. It is never prorated: derived positions strictly inside the
-  interval are approximate, and period views that only partly overlap it are partial
-  ([ADR-0009](adr/0009-valid-time-intervals-for-aggregate-flows.md)).
+  flows over that period. It is never prorated: derived positions from the first day of
+  the interval up to, but not including, its last day are approximate, and period
+  views that only partly overlap it are partial
+  ([ADR-0009](adr/0009-valid-time-intervals-for-aggregate-flows.md), [ADR-0014](adr/0014-end-of-day-positions-and-occurred-at.md)).
+- A transaction may carry an optional **occurred-at**, a UTC instant, only when its
+  source provides one. It orders transactions within one valid date and never changes
+  the valid date ([ADR-0014](adr/0014-end-of-day-positions-and-occurred-at.md)).
 - Facts use exact decimals and are append-only. A correction is a new version of the
   whole transaction; voiding is a final version marking it void
   ([ADR-0010](adr/0010-corrections-as-versions.md)).
@@ -157,6 +163,8 @@ A time-indexed value: prices, rates, indices, inflation, income shocks.
 - Observed history and simulated paths use the same shape.
 - All modules in one projection run read the same simulated paths, so correlations
   are preserved.
+- A series has its own time resolution. Intraday market prices are series, not ledger
+  facts ([ADR-0014](adr/0014-end-of-day-positions-and-occurred-at.md)).
 
 ## Dimension
 
@@ -183,6 +191,10 @@ Evidence that facts are derived from: statements, receipts, contracts, assessmen
 
 - All facts are **bitemporal**: valid time (when it happened in the world) and recorded
   time (when the system learned it).
+- Valid time is a civil date or an interval of civil dates, never a time of day. A
+  position at a date is its end-of-day state: it includes every flow with a valid date
+  on or before it. Opening balances and checkpoints are end-of-day balances
+  ([ADR-0014](adr/0014-end-of-day-positions-and-occurred-at.md)).
 - Computations run relative to an **as-of date**. Before it: state folded from facts and
   contract events. After it: projections.
 - Projections are derived, never stored as facts. They are keyed by as-of date,

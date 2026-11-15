@@ -122,7 +122,8 @@ Acceptance criteria:
 Acceptance criteria:
 
 - Given an account without an opening balance, when I record an opening balance of
-  EUR 2,450.00 at 2026-10-01, then the derived position at 2026-10-01 is EUR 2,450.00.
+  EUR 2,450.00 for the end of 2026-09-30, then the derived position at 2026-09-30 is
+  EUR 2,450.00.
 - Given an account with an opening balance, when I record a second one, then it is
   rejected. (Changing it is a correction, see S-008.)
 - Given an account without an opening balance, when I view the balance sheet, then the
@@ -143,7 +144,7 @@ Acceptance criteria:
 
 Acceptance criteria:
 
-- Given an account with an opening balance at 2026-10-01 and employer party "ACME GmbH",
+- Given an account with an opening balance at 2026-09-30 and employer party "ACME GmbH",
   when I record income of EUR 3,800.00 from ACME GmbH into the account at 2026-10-28,
   then one transaction is stored with two flows, EUR +3,800.00 on the account and
   EUR -3,800.00 on ACME GmbH's implicit account, and the derived position at
@@ -154,8 +155,9 @@ Acceptance criteria:
   it is rejected with a typed error (ADR-0013).
 - Given any recorded transaction, then it carries a valid time (the date entered) and a
   recorded time (when it was saved).
-- Given an account with an opening balance at 2026-10-01, when I record a flow dated
-  2026-09-30, then it is rejected with a typed error. (Backfill is a later release.)
+- Given an account with an opening balance at 2026-09-30, when I record a flow on it
+  dated 2026-09-30 or earlier, then it is rejected with a typed error. (The opening
+  balance is the end-of-day balance, ADR-0014. Backfill is a later release.)
 
 ### S-006: Record spending
 
@@ -175,6 +177,8 @@ Acceptance criteria:
   and EUR +640.00 on the implicit account of Grocery merchants.
 - Given that aggregate flow, when I view the derived position as of 2026-10-15, then
   it excludes the EUR 640.00 and is marked approximate.
+- Given that aggregate flow, when I view the derived position as of 2026-10-01, the
+  first day of the interval, then it is marked approximate as well (ADR-0014).
 - Given that aggregate flow, when I view the derived position as of 2026-10-31 or
   later, then it includes the full EUR 640.00 and is not marked approximate.
 - Given an interval whose end is before its start, when I record the flow, then it is
@@ -267,8 +271,9 @@ Acceptance criteria:
   difference shown updates accordingly.
 - Given a checkpoint dated before the account's opening balance, when I record it, then
   it is rejected.
-- Given a checkpoint dated inside an aggregate flow's interval on that account, then the
-  difference is shown as approximate.
+- Given a checkpoint dated on or after the first day and before the last day of an
+  aggregate flow's interval on that account, then the difference is shown as
+  approximate.
 
 ### S-012: View the balance sheet
 
@@ -288,8 +293,9 @@ Acceptance criteria:
   shows that the account has an unexplained difference.
 - Given an as-of date before an account's opening balance, then that account is shown
   as unknown, not as zero.
-- Given an as-of date inside an aggregate flow's interval, then the affected account
-  and the totals it feeds into are marked approximate.
+- Given an as-of date on or after the first day and before the last day of an
+  aggregate flow's interval, then the affected account and the totals it feeds into
+  are marked approximate.
 
 ### S-013: View in and out
 
@@ -309,15 +315,16 @@ Acceptance criteria:
   balances), then they are excluded from every in and out view.
 - Given a flow from a joint account with shares 50/50, when I view per member, then each
   member is attributed half.
-- Given a period that starts before an account's opening balance, then the view states
-  that the figures for that account are partial.
+- Given a period that starts on or before the date of an account's opening balance,
+  then the view states that the figures for that account are partial.
 - Given an aggregate flow for 2026-10-01 to 2026-10-31, when I view October 2026 or any
   period containing it, then it counts in full.
 - Given the same aggregate flow, when I view 2026-10-15 to 2026-11-15, then it is
   excluded, the figure is marked partial, and the aggregate is named.
-- Given the October example in ADR-0012, when I view per member, then Alex shows opening
-  2,000, in 3,000, out 300, between members -500, closing 4,200, and Sam shows opening
-  2,000, in 2,500, out 300, between members +500, closing 4,700.
+- Given the October example in ADR-0012 with opening balances at 2026-09-30, when I view
+  per member, then Alex shows opening 2,000, in 3,000, out 300, between members -500,
+  closing 4,200, and Sam shows opening 2,000, in 2,500, out 300, between members
+  +500, closing 4,700.
 - Given any period, then each member reconciles (opening + in - out + between members =
   closing), between-members lines sum to zero across the household, and members' in
   and out sum to the household's in and out.

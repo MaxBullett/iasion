@@ -21,3 +21,4 @@ supersedes the old one and update the old one's status.
 | [0011](0011-opening-balance-as-transaction.md) | Opening balance as a transaction against an opening party | Accepted |
 | [0012](0012-between-members-line.md) | Transfers between members appear on a separate line in member views | Accepted |
 | [0013](0013-signed-flows-on-accounts.md) | Flows are signed and one-sided, and every flow is on an account | Accepted |
+| [0014](0014-end-of-day-positions-and-occurred-at.md) | Positions are end-of-day, and a transaction may carry an occurred-at time | Accepted |
