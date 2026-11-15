@@ -6,6 +6,15 @@
 .env
 .env.*
 !.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa*
+id_ed25519*
+
+# --- Local denylist of private terms (checked by pre-commit, never committed) ---
+.private-terms
 
 # --- Rust ---
 /target/
