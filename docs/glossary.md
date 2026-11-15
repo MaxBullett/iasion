@@ -31,9 +31,13 @@ Kernel primitives are defined in detail in `docs/primitives.md`.
 - **Movement:** units going from one account to another. Derived from the flows of a
   transaction, e.g. for a flow diagram; never stored (ADR-0013).
 - **Transfer:** flows on household accounts that offset each other within a
-  transaction: units moving between household accounts. Not income or spending for
-  the household. A transaction may combine a transfer with other flows, e.g. a cash
+  transaction: units moving between household accounts. Not in or out for the
+  household. A transaction may combine a transfer with other flows, e.g. a cash
   withdrawal with a fee: current account -202.00, cash wallet +200.00, bank +2.00.
+- **In, out:** the direction of a flow that counts for the household: a flow on the
+  account of a party outside the boundary that is not a system party, in a transaction
+  that has a flow on a household account. Positive there is out, negative is in.
+  Gross, never netted (ADR-0013, ADR-0022).
 - **Generator:** a process producing expected flows over time.
 - **Series:** a time-indexed value, observed or simulated.
 - **Dimension:** a tag orthogonal to structure (purpose, pool, tax category).
@@ -61,6 +65,12 @@ Kernel primitives are defined in detail in `docs/primitives.md`.
   attributed positions after in and out: change minus in plus out. It arises when units
   move between household accounts with different ownership. Never in or out. Sums to
   zero across the household (ADR-0012, ADR-0018).
+
+## Views
+
+- **Income, spending:** view terms. A view by purpose nets in and out per purpose over
+  its period. A purpose with net in is income, one with net out is spending.
+  Unclassified is shown as in and out separately (ADR-0022).
 
 ## Time
 
@@ -90,8 +100,7 @@ From [ADR-0007](adr/0007-onboarding-present-first.md).
   remain the sum of flows (ADR-0011). One fact with its own versions; an account has
   at most one non-void opening balance (ADR-0015).
 - **Opening party:** the household's `system` party that is the counterparty of opening
-  balances. Outside the boundary; flows on its account never count as income or
-  spending.
+  balances. Outside the boundary; flows on its account never count as in or out.
 - **System party:** a party that exists for bookkeeping, not in the world (opening
   party, later the suspense party).
 - **Tracked:** an account is tracked for every date on or after the date of its opening

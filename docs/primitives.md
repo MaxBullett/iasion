@@ -46,8 +46,8 @@ employers, banks, the state, legal entities, other private persons.
   aggregate, system). `system` parties exist for bookkeeping, not in the world, and are
   never used for real counterparties.
 - Each household has one **opening party** (kind `system`, outside the boundary). It is
-  the counterparty of opening balances; flows on its account never count as income or
-  spending ([ADR-0011](adr/0011-opening-balance-as-transaction.md)).
+  the counterparty of opening balances; flows on its account never count as in or out
+  ([ADR-0011](adr/0011-opening-balance-as-transaction.md)).
 - **Aggregate parties** (e.g. "various grocery merchants") keep capture overhead low
   without breaking two-sidedness.
 - A **boundary** defines which parties are inside the household for reporting. Parties

@@ -518,6 +518,8 @@ Status: partly resolved:
   system party, "Opening balances" in R1).
 - How figure states combine, and which figures are marked:
   [ADR-0021](adr/0021-figures-carry-flags.md) (flags, and a total takes the union).
+- Terms and refunds: [ADR-0022](adr/0022-in-out-and-income-spending.md) (in and
+  out are kernel terms; income and spending are view terms, netted per purpose).
 
 ## OQ-034: Where a purpose assignment attaches
 

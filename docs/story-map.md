@@ -352,8 +352,13 @@ Acceptance criteria:
 
 Acceptance criteria:
 
-- Given flows in October 2026, when I view in and out for October 2026, then inflows and
-  outflows are grouped by purpose, with flows without a purpose under "Unclassified".
+- Given flows in October 2026, when I view in and out for October 2026, then in and out
+  are netted per purpose, purposes with net in are listed as income and purposes with
+  net out as spending, and flows without a purpose are shown under "Unclassified" as
+  in and out separately (ADR-0022).
+- Given spending of EUR 54.20 at Corner Grocer and a refund of EUR 20.00 from Corner
+  Grocer in the same period, both with the purpose "Groceries", then Groceries shows
+  spending of EUR 34.20 (ADR-0022).
 - Given a transaction whose flows are all on household accounts (a transfer), then it
   adds nothing to the household view.
 - Given a transaction with no flow on a household account, then it appears in no in
