@@ -320,6 +320,10 @@ Acceptance criteria:
 - Given a checkpoint dated on or after the first day and before the last day of an
   aggregate flow's interval on that account, then the difference is shown as
   approximate.
+- Given an account with several checkpoints, when I view the account's checkpoints,
+  then each is listed with its date, its amount and its current difference.
+- Given a checkpoint with a difference followed by a later checkpoint without one,
+  then the list still shows the earlier difference at its own date.
 
 ### S-012: View the balance sheet
 
@@ -335,8 +339,9 @@ Acceptance criteria:
   the balance sheet per member, then each member is attributed EUR 500.00.
 - Given all accounts, then household net worth equals the sum of all positions of
   household accounts, and equals the sum of the per-member figures.
-- Given an account whose latest checkpoint has a difference, then the balance sheet
-  shows that the account has an unexplained difference.
+- Given an account whose latest checkpoint on or before the as-of date has a
+  difference, then the balance sheet shows that the account has an unexplained
+  difference. Later checkpoints are not considered.
 - Given an as-of date before an account's opening balance, then that account is shown
   as unknown, not as zero, and net worth is the total of the other accounts, flagged
   partial and naming that account as not tracked (ADR-0021).

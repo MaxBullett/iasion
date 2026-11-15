@@ -485,6 +485,9 @@ part of an existing one?
 
 Also: no story gives a transaction a free-text note. Intended?
 
+Input: S-011 now lists an account's checkpoints, a first piece of an account detail
+view.
+
 Status: open
 
 ## OQ-033: Figure states and other open points in the R1 views
@@ -511,7 +514,7 @@ Raised by R1 event storming (H-21, H-22).
 - The stories say "income" and "spending" (S-005, S-006, ADR-0011) as well as "in" and
   "out" (S-013, ADR-0012). Are these the same, and which terms go into the glossary?
 
-Status: partly resolved:
+Status: resolved, except for the last point:
 
 - The reconciliation of a period that contains an opening balance:
   [ADR-0020](adr/0020-reconciliation-line-per-system-party.md) (one line per
@@ -520,6 +523,10 @@ Status: partly resolved:
   [ADR-0021](adr/0021-figures-carry-flags.md) (flags, and a total takes the union).
 - Terms and refunds: [ADR-0022](adr/0022-in-out-and-income-spending.md) (in and
   out are kernel terms; income and spending are view terms, netted per purpose).
+- The latest checkpoint: the latest on or before the as-of date; an account's
+  checkpoints are listed with their current differences (S-011, S-012).
+- Still open: where a purpose whose in and out cancel to exactly zero is listed
+  (ADR-0022).
 
 ## OQ-034: Where a purpose assignment attaches
 
