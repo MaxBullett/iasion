@@ -3,7 +3,7 @@
 - Status: accepted
 - Date: 2026-11-15
 - Resolves: OQ-009 (representation; backfill follows from ADR-0010)
-- Refined by: ADR-0014, ADR-0015
+- Refined by: ADR-0014, ADR-0015, ADR-0020
 
 ## Context
 

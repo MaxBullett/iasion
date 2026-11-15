@@ -108,6 +108,10 @@ Input: [ADR-0011](adr/0011-opening-balance-as-transaction.md) introduces the ope
 party (one per household, outside the boundary, kind `system`, excluded from in and
 out). The suspense party is likely to follow the same pattern.
 
+Input: [ADR-0020](adr/0020-reconciliation-line-per-system-party.md) gives each
+system party a line of its own in the reconciliation. The suspense party's is
+"Unexplained differences".
+
 Status: open
 
 ## OQ-012: How coverage is established
@@ -507,7 +511,11 @@ Raised by R1 event storming (H-21, H-22).
 - The stories say "income" and "spending" (S-005, S-006, ADR-0011) as well as "in" and
   "out" (S-013, ADR-0012). Are these the same, and which terms go into the glossary?
 
-Status: open
+Status: partly resolved:
+
+- The reconciliation of a period that contains an opening balance:
+  [ADR-0020](adr/0020-reconciliation-line-per-system-party.md) (one line per
+  system party, "Opening balances" in R1).
 
 ## OQ-034: Where a purpose assignment attaches
 

@@ -358,7 +358,8 @@ Acceptance criteria:
 - Given a transaction with no flow on a household account, then it appears in no in
   and out view (ADR-0013).
 - Given flows on a system party's account (e.g. the opening party's, for opening
-  balances), then they are excluded from every in and out view.
+  balances), then they are neither in nor out. They appear on that party's line of
+  the reconciliation, "Opening balances" (ADR-0020).
 - Given spending of EUR 54.20 from the joint account with shares 50/50, when I view per
   member, then each member shows out EUR 27.10.
 - Given spending of EUR 54.21 from that account, then one member shows out EUR 27.11
@@ -383,9 +384,15 @@ Acceptance criteria:
   per member, then Alex shows opening 2,000, in 3,000, out 300, between members -500,
   closing 4,200, and Sam shows opening 2,000, in 2,500, out 300, between members
   +500, closing 4,700.
-- Given any period, then each member reconciles (opening + in - out + between members =
-  closing), between-members lines sum to zero across the household, and members' in
-  and out sum to the household's in and out, all in whole cents (ADR-0019).
+- Given Sam's cash wallet with an opening balance of EUR 80.00 at 2026-10-10 and all
+  other accounts with opening balances at 2026-09-30, when I view October 2026, then
+  the opening figure leaves the wallet out and names it as not tracked, the line
+  "Opening balances" shows EUR 80.00 for Sam and for the household, and the view
+  reconciles (ADR-0020).
+- Given any period, then each member reconciles (opening + opening balances + in - out
+  + between members = closing), between-members lines sum to zero across the
+  household, and members' in and out sum to the household's in and out, all in whole
+  cents (ADR-0019).
 
 ### S-014: Sign in
 

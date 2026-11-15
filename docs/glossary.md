@@ -94,6 +94,9 @@ From [ADR-0007](adr/0007-onboarding-present-first.md).
   spending.
 - **System party:** a party that exists for bookkeeping, not in the world (opening
   party, later the suspense party).
+- **Tracked:** an account is tracked for every date on or after the date of its opening
+  balance, which is an end-of-day balance. Before that its positions are unknown and
+  its flows are not recorded. Views say "not tracked", never zero (ADR-0020).
 - **Coverage:** for one account, the intervals of valid time and whether recorded flows
   in each are complete, partial or unknown. Missing data is never read as zero.
 - **Checkpoint:** a position in an account observed at the end of a date, e.g. a
