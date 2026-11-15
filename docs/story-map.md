@@ -126,6 +126,9 @@ Acceptance criteria:
   EUR 2,450.00.
 - Given an account with an opening balance, when I record a second one, then it is
   rejected. (Changing it is a correction, see S-008.)
+- Given a new account opened on 2026-10-15, when I record its starting point as "new
+  account", then an opening balance of EUR 0.00 is recorded for the end of 2026-10-14
+  (ADR-0015).
 - Given an account without an opening balance, when I view the balance sheet, then the
   account is shown as having no starting point, not as zero.
 - Given an opening balance of EUR 2,450.00, then it is stored as a checkpoint and a
@@ -157,7 +160,10 @@ Acceptance criteria:
   recorded time (when it was saved).
 - Given an account with an opening balance at 2026-09-30, when I record a flow on it
   dated 2026-09-30 or earlier, then it is rejected with a typed error. (The opening
-  balance is the end-of-day balance, ADR-0014. Backfill is a later release.)
+  balance is the end-of-day balance, ADR-0014. R1 has no backfill feature; moving the
+  opening balance to an earlier date is a correction, see S-008.)
+- Given an account without an opening balance, when I record a flow on it, then it is
+  rejected with a typed error (ADR-0015).
 
 ### S-006: Record spending
 
@@ -204,6 +210,8 @@ Acceptance criteria:
 - Given a transfer of EUR 1,000.00 from Alex's account to the joint 50/50 account, when
   I view per member, then Alex shows EUR -500.00 and Sam EUR +500.00 under "between
   members", and neither shows it as in or out (ADR-0012).
+- Given a transfer into a household account without an opening balance, when I record
+  it, then it is rejected with a typed error (ADR-0015).
 
 ### S-008: Correct or void a flow
 
@@ -223,7 +231,18 @@ Acceptance criteria:
 - Given a corrected flow, when I view figures as known on a date before the correction
   was recorded, then the original amount is used.
 - Given a correction, then no reversing flow appears in any view.
-- Given an opening balance, when I correct it, then it is versioned the same way.
+- Given an opening balance, when I correct its amount, then a new version of the
+  opening balance is stored, with its checkpoint and its transaction written together
+  (ADR-0015).
+- Given an opening balance at 2026-09-30, when I correct its date to an earlier date,
+  then it is accepted.
+- Given an opening balance at 2026-09-30 and a flow on the account at 2026-10-14, when
+  I correct the opening date to 2026-10-14 or later, then it is rejected with a typed
+  error naming the flow. The same holds for a checkpoint on the account.
+- Given an opening balance on an account with other flows or checkpoints, when I void
+  it, then it is rejected.
+- Given an opening balance on an account with no other facts, when I void it, then a
+  new opening balance can be recorded for that account.
 
 ### S-009: Define purposes
 
@@ -271,6 +290,8 @@ Acceptance criteria:
   difference shown updates accordingly.
 - Given a checkpoint dated before the account's opening balance, when I record it, then
   it is rejected.
+- Given an account without an opening balance, when I record a checkpoint, then it is
+  rejected (ADR-0015).
 - Given a checkpoint dated on or after the first day and before the last day of an
   aggregate flow's interval on that account, then the difference is shown as
   approximate.

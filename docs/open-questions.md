@@ -373,7 +373,14 @@ Raised by R1 event storming (H-09, H-10).
   Do the opening-balance rules apply to accounts registered for a party outside the
   boundary (e.g. a loan account), or to household accounts only?
 
-Status: open
+Status: resolved, except for the last point, by
+[ADR-0015](adr/0015-life-of-an-opening-balance.md): a household account takes
+no flow or checkpoint without an opening balance, and a new account gets one of 0.00;
+the opening balance is one fact, at most one non-void per account, enforced by the
+Account; its amount is always correctable, its date moves earlier but never onto or
+past a recorded flow or checkpoint; void only while the account has no other facts.
+Open, for a later release: whether these rules apply to accounts registered for a
+party outside the boundary.
 
 ## OQ-028: Limits on recorded values
 
@@ -389,6 +396,8 @@ No spec states a rule for:
   negative in the world, but rejecting it would make the order of entry matter.
 - Two checkpoints for the same account and date. This includes a checkpoint on the
   date of the opening balance, whose difference no flow could explain (ADR-0014).
+  ADR-0015 already rejects moving an opening balance onto the date of an existing
+  checkpoint.
 
 Status: open
 
@@ -409,7 +418,9 @@ whole transaction (ADR-0010). Open:
 - Removing a purpose without replacing it: is that voiding the assignment?
 - Provenance includes a confidence (glossary). What is it for a manual assignment?
 
-Related: OQ-034 (what an assignment attaches to).
+Related: OQ-034 (what an assignment attaches to). ADR-0015: a correction or void never
+invalidates already-recorded facts. Does that restrict correcting or voiding a
+transaction whose flows carry assignments?
 
 Status: open
 

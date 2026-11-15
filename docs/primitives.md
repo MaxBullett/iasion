@@ -4,7 +4,8 @@ Status: draft v0.5. Sections marked *(ADR-0007)* follow from
 [ADR-0007](adr/0007-onboarding-present-first.md); their open details are listed in
 `docs/open-questions.md`. Flows follow
 [ADR-0013](adr/0013-signed-flows-on-accounts.md); the day boundary and occurred-at
-follow [ADR-0014](adr/0014-end-of-day-positions-and-occurred-at.md).
+follow [ADR-0014](adr/0014-end-of-day-positions-and-occurred-at.md); the life of
+an opening balance follows [ADR-0015](adr/0015-life-of-an-opening-balance.md).
 
 The kernel models money the way stock-flow consistent models do: everything is a stock
 held by a party, or a flow between stocks, and nothing appears or disappears without a
@@ -73,6 +74,11 @@ A container that holds positions. Owned by one or more parties with ownership sh
   against the opening party, so positions at every date are the sum of flows
   ([ADR-0011](adr/0011-opening-balance-as-transaction.md)). All other flows on the
   account are dated after it ([ADR-0014](adr/0014-end-of-day-positions-and-occurred-at.md)).
+- An opening balance is one fact with its own identity and versions; its checkpoint
+  and its transaction are parts that are written together. An account has at most one
+  non-void opening balance, and a household account takes no flow or checkpoint
+  without one. A correction of it is rejected if it would invalidate a recorded flow
+  or checkpoint ([ADR-0015](adr/0015-life-of-an-opening-balance.md)).
 - *(ADR-0007)* Each account has **coverage** intervals, each marked
   complete, partial or unknown. Accounts have independent opening balances and
   coverage; there is no household-wide cutoff date.
@@ -93,8 +99,8 @@ A party's holding of a quantity of a unit, inside an account, at a point in time
 - A position has a **nominal value** and may have one or more **valuations**. These can
   differ materially (e.g. a claim against an entity that cannot repay it).
 - *(ADR-0007)* A **checkpoint** is a position observed at the end of a date, e.g. a
-  statement balance. It does not replace the derived position. A difference between the two is
-  booked as a flow against the suspense party (OQ-010).
+  statement balance. It does not replace the derived position. A difference between
+  the two is booked as a flow against the suspense party (OQ-010).
 
 ## Flow and Transaction
 

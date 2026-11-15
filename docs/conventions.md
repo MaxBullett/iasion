@@ -41,11 +41,16 @@ to avoid guessing.
 
 - Invariants are enforced by the aggregate that owns them:
   - Transaction: flows net to zero per unit.
-  - Account: ownership shares sum to 100%.
+  - Account: ownership shares sum to 100%; at most one non-void opening balance
+    (ADR-0015).
   - Contract: state is derived from terms plus lifecycle events.
 - Facts are append-only. Each fact has a stable ID and versions over recorded time; a
   correction is a new version, voiding is a final version marking it void. The
   transaction, not the single flow, is the versioned unit (ADR-0010).
+- A correction or void never invalidates independent recorded facts (other
+  transactions, checkpoints). One that would is rejected with a typed error naming the
+  conflicting facts. Dependent facts, such as dimension assignments on a transaction's
+  flows, follow their parent (ADR-0015, ADR-0016).
 - Queries use current knowledge (latest non-void version) by default. "As known on"
   queries select versions by recorded time.
 

@@ -69,7 +69,8 @@ Kernel primitives are defined in detail in `docs/primitives.md`.
 - **Version:** one recorded state of a fact. A fact has a stable ID and one or more
   versions, each with its recorded time (ADR-0010).
 - **Correction:** a new version of a fact that replaces the previous one in current
-  views. Not a reversal entry.
+  views. Not a reversal entry. Rejected if it would invalidate an independent recorded
+  fact, such as another transaction or a checkpoint (ADR-0015).
 - **Void:** a final version marking a fact as not having happened. Voided facts affect
   no current view.
 - **Reconciliation:** linking realized flows to the generator flows that predicted them.
@@ -81,7 +82,8 @@ From [ADR-0007](adr/0007-onboarding-present-first.md).
 - **Opening balance:** the positions of an account at the end of a stated date, taken
   as given.
   Recorded as a checkpoint plus a transaction against the opening party, so positions
-  remain the sum of flows (ADR-0011).
+  remain the sum of flows (ADR-0011). One fact with its own versions; an account has
+  at most one non-void opening balance (ADR-0015).
 - **Opening party:** the household's `system` party that is the counterparty of opening
   balances. Outside the boundary; flows on its account never count as income or
   spending.

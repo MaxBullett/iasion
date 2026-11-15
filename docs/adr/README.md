@@ -22,3 +22,4 @@ supersedes the old one and update the old one's status.
 | [0012](0012-between-members-line.md) | Transfers between members appear on a separate line in member views | Accepted |
 | [0013](0013-signed-flows-on-accounts.md) | Flows are signed and one-sided, and every flow is on an account | Accepted |
 | [0014](0014-end-of-day-positions-and-occurred-at.md) | Positions are end-of-day, and a transaction may carry an occurred-at time | Accepted |
+| [0015](0015-life-of-an-opening-balance.md) | An opening balance is one fact, comes first, and corrections never invalidate independent facts | Accepted |
