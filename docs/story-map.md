@@ -372,6 +372,9 @@ Acceptance criteria:
 - Given spending of EUR 54.20 at Corner Grocer and a refund of EUR 20.00 from Corner
   Grocer in the same period, both with the purpose "Groceries", then Groceries shows
   spending of EUR 34.20 (ADR-0022).
+- Given a purpose whose in and out net to exactly zero in the period, then it is
+  listed in a group of its own, "Netted to zero", below income and spending, with its
+  gross in and out visible on expansion. It never disappears.
 - Given a transaction whose flows are all on household accounts (a transfer), then it
   adds nothing to the household view.
 - Given a transaction with no flow on a household account, then it appears in no in

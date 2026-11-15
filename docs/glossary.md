@@ -76,7 +76,8 @@ Kernel primitives are defined in detail in `docs/primitives.md`.
 
 - **Income, spending:** view terms. A view by purpose nets in and out per purpose over
   its period. A purpose with net in is income, one with net out is spending.
-  Unclassified is shown as in and out separately (ADR-0022).
+  Unclassified is shown as in and out separately (ADR-0022). A purpose whose in and
+  out net to exactly zero is listed in a group of its own, "Netted to zero".
 
 ## Time
 

@@ -537,7 +537,7 @@ Raised by R1 event storming (H-21, H-22).
 - The stories say "income" and "spending" (S-005, S-006, ADR-0011) as well as "in" and
   "out" (S-013, ADR-0012). Are these the same, and which terms go into the glossary?
 
-Status: resolved, except for the last point:
+Status: resolved:
 
 - The reconciliation of a period that contains an opening balance:
   [ADR-0020](adr/0020-reconciliation-line-per-system-party.md) (one line per
@@ -548,8 +548,8 @@ Status: resolved, except for the last point:
   out are kernel terms; income and spending are view terms, netted per purpose).
 - The latest checkpoint: the latest on or before the as-of date; an account's
   checkpoints are listed with their current differences (S-011, S-012).
-- Still open: where a purpose whose in and out cancel to exactly zero is listed
-  (ADR-0022).
+- A purpose whose in and out net to exactly zero: listed in a group of its own,
+  "Netted to zero", with its gross in and out on expansion (S-013).
 
 ## OQ-034: Where a purpose assignment attaches
 
