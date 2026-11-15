@@ -263,17 +263,32 @@ Acceptance criteria:
 - Activity: A1. Task: A1.7 Classify. Release: R1.
 - As a household member, I want to assign a purpose to a flow, so that I can see where
   money goes.
-- **OQ:** what a purpose is assigned to (one flow or the whole transaction, and on
-  which side) is open (OQ-034). The criteria below are provisional.
 
 Acceptance criteria:
 
-- Given a flow and the purpose "Groceries", when I assign it, then the assignment has
-  provenance: assigned by me, confirmed.
-- Given a flow without a purpose, when I view in and out, then it appears under
-  "Unclassified", never dropped.
+- Given spending of EUR 54.20 at Corner Grocer and the purpose "Groceries", when I
+  assign it, then the assignment is on the flow of EUR +54.20 on Corner Grocer's
+  implicit account and has provenance: assigned by me, confirmed.
+- Given a payment of EUR 80.00 from the joint current account with two flows on Corner
+  Grocer's implicit account, EUR +50.00 and EUR +30.00, when I assign "Groceries" to
+  the first and "Household goods" to the second, then each flow has its own purpose.
+- Given a cash withdrawal with a EUR 2.00 fee (S-007), when I assign the purpose "Bank
+  fees", then it is on the flow of EUR +2.00 on Example Bank's implicit account.
+- Given the aggregate flow of EUR 640.00 (S-006), when I assign "Groceries", then the
+  assignment is on the flow on the implicit account of Grocery merchants.
+- Given a flow on a household account, a flow on a system party's account, or a flow
+  of a transaction that has no flow on a household account, when I assign a purpose
+  to it, then it is rejected with a typed error (ADR-0016).
+- Given a flow that can carry a purpose and has none, when I view in and out, then it
+  appears under "Unclassified", never dropped.
 - Given a flow with a purpose, when I change the purpose, then the previous assignment
   is kept with its recorded time.
+- Given a flow with a purpose, when I correct its amount (S-008), then the flow keeps
+  its purpose.
+- Given a flow with a purpose, when a correction splits it in two, then one part keeps
+  the purpose and the other appears under "Unclassified".
+- Given a flow with a purpose, when a correction removes the flow or the transaction
+  is voided, then the assignment is no longer current and is still stored.
 
 ### S-011: Record a checkpoint
 

@@ -23,3 +23,4 @@ supersedes the old one and update the old one's status.
 | [0013](0013-signed-flows-on-accounts.md) | Flows are signed and one-sided, and every flow is on an account | Accepted |
 | [0014](0014-end-of-day-positions-and-occurred-at.md) | Positions are end-of-day, and a transaction may carry an occurred-at time | Accepted |
 | [0015](0015-life-of-an-opening-balance.md) | An opening balance is one fact, comes first, and corrections never invalidate independent facts | Accepted |
+| [0016](0016-purposes-on-counterparty-flows.md) | A purpose attaches to a counterparty-side flow, and flows keep their identity across versions | Accepted |

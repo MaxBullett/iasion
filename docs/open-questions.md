@@ -418,11 +418,22 @@ whole transaction (ADR-0010). Open:
 - Removing a purpose without replacing it: is that voiding the assignment?
 - Provenance includes a confidence (glossary). What is it for a manual assignment?
 
-Related: OQ-034 (what an assignment attaches to). ADR-0015: a correction or void never
-invalidates already-recorded facts. Does that restrict correcting or voiding a
-transaction whose flows carry assignments?
+Related: OQ-034 (what an assignment attaches to).
 
-Status: open
+Status: resolved in part by
+[ADR-0016](adr/0016-purposes-on-counterparty-flows.md): a flow keeps a stable
+ID within its transaction across versions; an amount correction keeps the flow and its
+purpose; when a flow is split, one part keeps the ID and the assignment; when a flow
+is removed or the transaction voided, its assignments stop being current and stay in
+history. Assignments are dependent facts and never block a correction (ADR-0015).
+Still open:
+
+- Removing a purpose without replacing it.
+- The confidence of a manual assignment.
+- Whether there is any limit to what a correction may change.
+- A correction that keeps a flow but makes it unable to carry a purpose, e.g. by
+  moving it to a household account: is the assignment dropped like that of a removed
+  flow, or is the correction rejected?
 
 ## OQ-030: Concurrent corrections
 
@@ -509,7 +520,11 @@ S-010 assigns a purpose to a flow. With signed, one-sided flows (ADR-0013), open
 
 Related: OQ-029.
 
-Status: open
+Status: resolved by
+[ADR-0016](adr/0016-purposes-on-counterparty-flows.md): a purpose attaches
+to a single flow on the account of a party outside the boundary that is not a system
+party, in a transaction that has a flow on a household account. Assigning one to any
+other flow is rejected. Aggregate flows follow the same rule.
 
 ## OQ-035: Member attribution in transactions with flows in both directions
 

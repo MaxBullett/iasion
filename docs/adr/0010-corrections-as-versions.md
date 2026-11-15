@@ -3,7 +3,7 @@
 - Status: accepted
 - Date: 2026-11-15
 - Resolves: OQ-020
-- Refined by: ADR-0015
+- Refined by: ADR-0015, ADR-0016
 
 ## Context
 

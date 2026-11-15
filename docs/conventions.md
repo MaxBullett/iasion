@@ -46,7 +46,8 @@ to avoid guessing.
   - Contract: state is derived from terms plus lifecycle events.
 - Facts are append-only. Each fact has a stable ID and versions over recorded time; a
   correction is a new version, voiding is a final version marking it void. The
-  transaction, not the single flow, is the versioned unit (ADR-0010).
+  transaction, not the single flow, is the versioned unit (ADR-0010). A flow keeps a
+  stable ID within its transaction across versions (ADR-0016).
 - A correction or void never invalidates independent recorded facts (other
   transactions, checkpoints). One that would is rejected with a typed error naming the
   conflicting facts. Dependent facts, such as dimension assignments on a transaction's

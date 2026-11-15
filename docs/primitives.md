@@ -5,7 +5,8 @@ Status: draft v0.5. Sections marked *(ADR-0007)* follow from
 `docs/open-questions.md`. Flows follow
 [ADR-0013](adr/0013-signed-flows-on-accounts.md); the day boundary and occurred-at
 follow [ADR-0014](adr/0014-end-of-day-positions-and-occurred-at.md); the life of
-an opening balance follows [ADR-0015](adr/0015-life-of-an-opening-balance.md).
+an opening balance follows [ADR-0015](adr/0015-life-of-an-opening-balance.md); flow
+identity follows [ADR-0016](adr/0016-purposes-on-counterparty-flows.md).
 
 The kernel models money the way stock-flow consistent models do: everything is a stock
 held by a party, or a flow between stocks, and nothing appears or disappears without a
@@ -125,6 +126,10 @@ signed amount. A positive amount increases the position. A transaction groups fl
 - A transaction may carry an optional **occurred-at**, a UTC instant, only when its
   source provides one. It orders transactions within one valid date and never changes
   the valid date ([ADR-0014](adr/0014-end-of-day-positions-and-occurred-at.md)).
+- A flow has a stable identity within its transaction across versions. Facts that
+  depend on a flow, such as dimension assignments, reference the transaction and the
+  flow, and follow it when the transaction is corrected or voided
+  ([ADR-0016](adr/0016-purposes-on-counterparty-flows.md)).
 - Facts use exact decimals and are append-only. A correction is a new version of the
   whole transaction; voiding is a final version marking it void
   ([ADR-0010](adr/0010-corrections-as-versions.md)).
@@ -180,6 +185,8 @@ A tag orthogonal to structure: purpose, pool, tax category, productive/unproduct
   importer), confidence, and whether it has been confirmed.
 - Plugins may define dimension vocabularies (e.g. a jurisdiction plugin defines
   deductible categories).
+- A purpose is assigned to a single flow that counts in in and out
+  ([ADR-0016](adr/0016-purposes-on-counterparty-flows.md)).
 
 ## Constraint
 
