@@ -54,9 +54,10 @@ Kernel primitives are defined in detail in `docs/primitives.md`.
 - **Boundary:** the line separating household parties from counterparties.
 - **Pool:** a dimension grouping positions and flows for a purpose, with an owner.
 - **Budget:** a constraint on a pool's flows.
-- **Between members:** in a member view, the net change in a member's attributed
-  positions caused by transfers between household accounts with different ownership.
-  Never in or out. Sums to zero across the household (ADR-0012).
+- **Between members:** in a member view, what remains of the change in a member's
+  attributed positions after in and out: change minus in plus out. It arises when units
+  move between household accounts with different ownership. Never in or out. Sums to
+  zero across the household (ADR-0012, ADR-0018).
 
 ## Time
 

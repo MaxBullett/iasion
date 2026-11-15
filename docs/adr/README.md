@@ -25,3 +25,4 @@ supersedes the old one and update the old one's status.
 | [0015](0015-life-of-an-opening-balance.md) | An opening balance is one fact, comes first, and corrections never invalidate independent facts | Accepted |
 | [0016](0016-purposes-on-counterparty-flows.md) | A purpose attaches to a counterparty-side flow, and flows keep their identity across versions | Accepted |
 | [0017](0017-ending-assignments-and-limits-of-corrections.md) | Purpose assignments end without blocking, and a correction may change anything but identity | Accepted |
+| [0018](0018-member-attribution-of-in-and-out.md) | In and out are attributed to whose money paid and whose account received | Accepted |

@@ -493,7 +493,8 @@ Raised by R1 event storming (H-21, H-22).
 - ADR-0012 requires opening + in - out + between members = closing. With ADR-0014 this
   holds for a period that starts after every opening balance. If a period starts on or
   before an account's opening balance, the opening figure is unknown and the opening
-  flow is excluded from in (ADR-0011). What does the member view show then?
+  flow is excluded from in (ADR-0011). What does the member view show then? The
+  change the opening flow causes is not between members either (ADR-0018).
 - S-012 shows a difference for an account's "latest checkpoint". Latest overall, or
   latest at or before the as-of date? What if an earlier checkpoint has a difference
   and a later one has none?
@@ -556,7 +557,12 @@ Which member is each of them attributed to?
   fee come from?
 - Does ADR-0012 need a successor?
 
-Status: open
+Status: resolved by
+[ADR-0018](adr/0018-member-attribution-of-in-and-out.md): out is attributed to
+the members whose money paid it, in to the members whose account received it, in
+proportion to the household flows of the opposite sign (same sign if there are none).
+Between members is the remainder. In the second example out is 1.00 each and between
+members +100.00 and -100.00. ADR-0012 is refined, not superseded.
 
 ## OQ-036: Order of same-day transactions without an occurred-at
 
@@ -592,3 +598,18 @@ a spec it needs a primary source (`AGENTS.md`, rule 2). Open:
 Related: ADR-0014, OQ-010.
 
 Status: open, parked until R2
+
+## OQ-038: Exchanges of units in in and out
+
+Raised in review of OQ-035 (H-28). For the investment release.
+
+Household in and out are the flows on non-household accounts (ADR-0013), attributed
+per unit (ADR-0018). An exchange with an outside party, e.g. buying a security from a
+broker, then shows as out in one unit (the money paid) and in in another (the security
+received), although the household is no richer or poorer. Open:
+
+- Should in and out show exchanges that way, exclude them, or show them separately?
+- If they are to be compared or netted, that needs a valuation of the non-currency
+  unit, which R1 does not have.
+
+Status: open, parked until the investment release

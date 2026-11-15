@@ -358,6 +358,16 @@ Acceptance criteria:
   balances), then they are excluded from every in and out view.
 - Given a flow from a joint account with shares 50/50, when I view per member, then each
   member is attributed half.
+- Given income of EUR 3,800.00 from ACME GmbH, of which EUR 3,000.00 arrive on Alex's
+  current account and EUR 800.00 on the joint account, then in is EUR 3,400.00 for
+  Alex and EUR 400.00 for Sam, and between members is zero (ADR-0018).
+- Given a cash withdrawal of EUR 200.00 from the joint account into Alex's cash wallet
+  with a EUR 2.00 fee, then out is EUR 1.00 for each member, and between members is
+  EUR +100.00 for Alex and EUR -100.00 for Sam (ADR-0018).
+- Given income of EUR 3,800.00 from ACME GmbH from which Example Bank withholds a fee
+  of EUR 5.00, so that EUR 3,795.00 arrive on Alex's current account, then Alex shows
+  in EUR 3,800.00 and out EUR 5.00 (ADR-0018, no household flow of the opposite
+  sign).
 - Given a period that starts on or before the date of an account's opening balance,
   then the view states that the figures for that account are partial.
 - Given an aggregate flow for 2026-10-01 to 2026-10-31, when I view October 2026 or any
