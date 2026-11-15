@@ -516,6 +516,8 @@ Status: partly resolved:
 - The reconciliation of a period that contains an opening balance:
   [ADR-0020](adr/0020-reconciliation-line-per-system-party.md) (one line per
   system party, "Opening balances" in R1).
+- How figure states combine, and which figures are marked:
+  [ADR-0021](adr/0021-figures-carry-flags.md) (flags, and a total takes the union).
 
 ## OQ-034: Where a purpose assignment attaches
 

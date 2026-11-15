@@ -22,6 +22,9 @@ to avoid guessing.
 - Facts use exact decimals. `Money` is `decimal + currency`.
 - Attribution to members allocates each flow in whole minor units by largest
   remainder, so member figures sum exactly to household figures (ADR-0019).
+- A figure is a value plus flags: approximate, and partial with named exclusions. A
+  total takes the union of the flags of its parts. Unknown is never shown as zero
+  (ADR-0021).
 - Arithmetic across currencies is an error, never an implicit conversion.
 - Floating point is allowed only inside the projection layer. Conversion between
   exact and floating values happens at an explicit, named boundary.

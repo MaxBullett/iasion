@@ -338,7 +338,8 @@ Acceptance criteria:
 - Given an account whose latest checkpoint has a difference, then the balance sheet
   shows that the account has an unexplained difference.
 - Given an as-of date before an account's opening balance, then that account is shown
-  as unknown, not as zero.
+  as unknown, not as zero, and net worth is the total of the other accounts, flagged
+  partial and naming that account as not tracked (ADR-0021).
 - Given an as-of date on or after the first day and before the last day of an
   aggregate flow's interval, then the affected account and the totals it feeds into
   are marked approximate.
@@ -375,11 +376,13 @@ Acceptance criteria:
   in EUR 3,800.00 and out EUR 5.00 (ADR-0018, no household flow of the opposite
   sign).
 - Given a period that starts on or before the date of an account's opening balance,
-  then the view states that the figures for that account are partial.
+  then the view is flagged partial once, with a note naming the account as not
+  tracked before that date. Purpose lines are not flagged one by one (ADR-0021).
 - Given an aggregate flow for 2026-10-01 to 2026-10-31, when I view October 2026 or any
   period containing it, then it counts in full.
 - Given the same aggregate flow, when I view 2026-10-15 to 2026-11-15, then it is
-  excluded, the figure is marked partial, and the aggregate is named.
+  excluded, and the line of its purpose ("Unclassified" if it has none) and the
+  totals are flagged partial, naming the aggregate (ADR-0021).
 - Given the October example in ADR-0012 with opening balances at 2026-09-30, when I view
   per member, then Alex shows opening 2,000, in 3,000, out 300, between members -500,
   closing 4,200, and Sam shows opening 2,000, in 2,500, out 300, between members

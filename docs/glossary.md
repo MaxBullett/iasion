@@ -109,10 +109,15 @@ From [ADR-0007](adr/0007-onboarding-present-first.md).
   are recorded at all. How it is measured is open (OQ-013).
 - **Approximate (position):** a derived position whose as-of date is on or after the
   first day and before the last day of the interval of an aggregate flow on that
-  account (ADR-0009, ADR-0014).
-- **Partial (figure):** a period figure known to exclude something it should contain,
-  e.g. an aggregate flow whose interval only partly overlaps the period, or a period
-  before an account's opening balance. Not to be confused with partial coverage.
+  account (ADR-0009, ADR-0014). A total is approximate if any of its parts is
+  (ADR-0021).
+- **Partial (figure):** a figure known to exclude something it should contain. It names
+  each exclusion and its reason, e.g. an aggregate flow whose interval only partly
+  overlaps the period, or an account that is not tracked yet. A total is partial if
+  any of its parts is (ADR-0021). Not to be confused with partial coverage.
+- **Unknown (figure):** a single figure that cannot be stated, e.g. the position of an
+  account before it is tracked. Never shown as zero. A total leaves it out and is
+  flagged partial (ADR-0021).
 
 ## Projection
 

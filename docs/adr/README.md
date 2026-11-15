@@ -28,3 +28,4 @@ supersedes the old one and update the old one's status.
 | [0018](0018-member-attribution-of-in-and-out.md) | In and out are attributed to whose money paid and whose account received | Accepted |
 | [0019](0019-exact-shares-and-whole-minor-units.md) | Ownership shares are exact fractions, and attribution allocates whole minor units | Accepted |
 | [0020](0020-reconciliation-line-per-system-party.md) | The reconciliation has one line per system party | Accepted |
+| [0021](0021-figures-carry-flags.md) | Figures carry flags, and a total takes the union | Accepted |

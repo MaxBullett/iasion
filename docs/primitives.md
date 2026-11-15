@@ -143,6 +143,9 @@ signed amount. A positive amount increases the position. A transaction groups fl
 - A realized flow may be linked to the generator that predicted it (reconciliation).
 - *(ADR-0007)* **Missing data is never zero.** An aggregate of flows over an
   interval that is not completely covered is partial or unknown, and must say so.
+- A figure carries flags (approximate; partial, with named exclusions), and a total
+  takes the union of the flags of its parts
+  ([ADR-0021](adr/0021-figures-carry-flags.md)).
 
 ## Generator
 
