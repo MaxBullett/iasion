@@ -101,8 +101,12 @@ only. Do not claim a change passed these checks unless they ran.
 - One branch per story, decision or chore. Name: `<type>/<id>-<slug>`, e.g.
   `feat/s-006-record-spending`, `docs/adr-0013-persistence`, `chore/secret-scanning`.
   Use the most specific ID available (story, ADR, OQ); omit it only for chores without one.
-- Pull requests are squash-merged. The squash commit on `main` follows the message
-  format below and is the record that history readers rely on.
+- Pull requests are squash-merged by default. The squash commit on `main` follows the
+  message format below and is the record that history readers rely on.
+- Exception: a pull request whose commits each record a separate accepted decision
+  (e.g. one ADR per commit) may be rebase-merged, so that each decision keeps its own
+  commit on `main`. Every commit of such a pull request lands on `main` as it is, so
+  each one must follow the message format below.
 
 ### Commits on a branch
 
