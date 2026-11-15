@@ -1,8 +1,9 @@
 # Kernel primitives
 
-Status: draft v0.4. Sections marked *(ADR-0007)* follow from
+Status: draft v0.5. Sections marked *(ADR-0007)* follow from
 [ADR-0007](adr/0007-onboarding-present-first.md); their open details are listed in
-`docs/open-questions.md`.
+`docs/open-questions.md`. Flows follow
+[ADR-0013](adr/0013-signed-flows-on-accounts.md).
 
 The kernel models money the way stock-flow consistent models do: everything is a stock
 held by a party, or a flow between stocks, and nothing appears or disappears without a
@@ -20,7 +21,7 @@ primitives. Users and most code should never see `Generator<Flow<Unit>>`.
 | Account | A container at an institution, owned by one or more parties. |
 | Unit | What is being counted. |
 | Position | A quantity of a unit held in an account at a point in time. |
-| Flow / Transaction | Units moving between positions at a point in time. |
+| Flow / Transaction | A signed change to a position; a transaction groups flows that net to zero. |
 | Generator | A process that produces expected flows over time. |
 | Series | A time-indexed value, observed or simulated. |
 | Dimension | A tag orthogonal to structure, with provenance. |
@@ -32,12 +33,16 @@ primitives. Users and most code should never see `Generator<Flow<Unit>>`.
 Anything that can hold value or claims: household members, the household itself,
 employers, banks, the state, legal entities, other private persons.
 
-- External parties are modeled explicitly so every flow is two-sided.
+- External parties are modeled explicitly so every transaction is two-sided.
+- Every party can own accounts. Each party outside the boundary, system parties
+  included, has one **implicit account**, created with the party. Members have none:
+  what a member holds is in an account they own, and a member is never a counterparty
+  directly ([ADR-0013](adr/0013-signed-flows-on-accounts.md)).
 - Parties have a kind (natural person, legal entity, institution, public body,
   aggregate, system). `system` parties exist for bookkeeping, not in the world, and are
   never used for real counterparties.
 - Each household has one **opening party** (kind `system`, outside the boundary). It is
-  the counterparty of opening balances; flows against it never count as income or
+  the counterparty of opening balances; flows on its account never count as income or
   spending ([ADR-0011](adr/0011-opening-balance-as-transaction.md)).
 - **Aggregate parties** (e.g. "various grocery merchants") keep capture overhead low
   without breaking two-sidedness.
@@ -57,6 +62,9 @@ A container that holds positions. Owned by one or more parties with ownership sh
   two household accounts, not an outflow.
 - Shares per account sum to 100%.
 - One party may own many accounts; one account may have many owners.
+- An implicit account is owned by its party alone. More specific accounts can be
+  registered for a party outside the boundary, e.g. a loan account
+  ([ADR-0013](adr/0013-signed-flows-on-accounts.md)).
 - Attribution to members (e.g. for tax) runs through ownership shares, never through
   the account itself.
 - Each account has at most one **opening balance**: its positions at a stated date,
@@ -88,10 +96,18 @@ A party's holding of a quantity of a unit, inside an account, at a point in time
 
 ## Flow and Transaction
 
-A flow moves a quantity of a unit from one position to another at a valid time.
-A transaction groups flows.
+A flow is a signed change to the position of one account: an account, a unit and a
+signed amount. A positive amount increases the position. A transaction groups flows
+([ADR-0013](adr/0013-signed-flows-on-accounts.md)).
 
-- **Invariant:** the flows of a transaction net to zero per unit.
+- **Invariant:** the flows of a transaction net to zero per unit. The transaction
+  enforces it; a set of flows that does not net to zero is rejected. Example, a cash
+  withdrawal with a fee: current account -202.00, cash wallet +200.00, bank +2.00.
+- Every flow is on an account, never directly against a party.
+- A transaction need not touch a household account. Transactions between outside
+  parties affect no household view.
+- A **movement**, units going from one account to another, is derived from the flows
+  of a transaction. It is never stored.
 - A transaction's valid time is a civil date or a closed interval of civil dates, and
   all its flows share it. An **aggregate flow** uses an interval and stands in for many
   flows over that period. It is never prorated: derived positions strictly inside the

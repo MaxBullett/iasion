@@ -92,6 +92,8 @@ Acceptance criteria:
   as a party outside the boundary.
 - Given a household, when I register an aggregate party "Grocery merchants", then it can
   be used as a counterparty like any other party.
+- Given a registered party, then it has exactly one implicit account, owned by it
+  (ADR-0013).
 - Given a party name that already exists, when I register it again, then I am warned
   and can still proceed (two different parties may share a name).
 
@@ -126,11 +128,12 @@ Acceptance criteria:
 - Given an account without an opening balance, when I view the balance sheet, then the
   account is shown as having no starting point, not as zero.
 - Given an opening balance of EUR 2,450.00, then it is stored as a checkpoint and a
-  transaction between the account and the opening party, and the derived position
-  equals the sum of flows.
+  transaction with two flows, EUR +2,450.00 on the account and EUR -2,450.00 on the
+  opening party's implicit account, and the derived position equals the sum of flows.
 - Given an opening balance, when I view in and out for its period, then it does not
   appear as income.
-- Given a household is created, then exactly one opening party exists for it.
+- Given a household is created, then exactly one opening party exists for it, with one
+  implicit account.
 
 ### S-005: Record income
 
@@ -141,11 +144,15 @@ Acceptance criteria:
 Acceptance criteria:
 
 - Given an account with an opening balance at 2026-10-01 and employer party "ACME GmbH",
-  when I record a flow of EUR 3,800.00 from ACME GmbH into the account at 2026-10-28,
-  then the derived position at 2026-10-28 has increased by EUR 3,800.00.
-- Given any recorded flow, then its transaction nets to zero per unit and the
-  counterparty side is visible.
-- Given any recorded flow, then it carries a valid time (the date entered) and a
+  when I record income of EUR 3,800.00 from ACME GmbH into the account at 2026-10-28,
+  then one transaction is stored with two flows, EUR +3,800.00 on the account and
+  EUR -3,800.00 on ACME GmbH's implicit account, and the derived position at
+  2026-10-28 has increased by EUR 3,800.00.
+- Given any recorded transaction, then its flows net to zero per unit and the flow on
+  the counterparty's account is visible.
+- Given flows that do not net to zero per unit, when the transaction is recorded, then
+  it is rejected with a typed error (ADR-0013).
+- Given any recorded transaction, then it carries a valid time (the date entered) and a
   recorded time (when it was saved).
 - Given an account with an opening balance at 2026-10-01, when I record a flow dated
   2026-09-30, then it is rejected with a typed error. (Backfill is a later release.)
@@ -158,11 +165,14 @@ Acceptance criteria:
 
 Acceptance criteria:
 
-- Given an account and party "Corner Grocer", when I record a flow of EUR 54.20 to Corner Grocer at
-  2026-10-14, then the derived position decreases by EUR 54.20 from that date.
+- Given an account and party "Corner Grocer", when I record spending of EUR 54.20 at
+  Corner Grocer at 2026-10-14, then one transaction is stored with two flows,
+  EUR -54.20 on the account and EUR +54.20 on Corner Grocer's implicit account, and
+  the derived position decreases by EUR 54.20 from that date.
 - Given an account and aggregate party "Grocery merchants", when I record an aggregate
-  flow of EUR 640.00 for 2026-10-01 to 2026-10-31, then it is stored as one flow with
-  that valid-time interval.
+  flow of EUR 640.00 for 2026-10-01 to 2026-10-31, then it is stored as one
+  transaction with that valid-time interval and two flows, EUR -640.00 on the account
+  and EUR +640.00 on the implicit account of Grocery merchants.
 - Given that aggregate flow, when I view the derived position as of 2026-10-15, then
   it excludes the EUR 640.00 and is marked approximate.
 - Given that aggregate flow, when I view the derived position as of 2026-10-31 or
@@ -179,12 +189,14 @@ Acceptance criteria:
 Acceptance criteria:
 
 - Given Alex's current account and Alex's cash wallet, when I record a cash withdrawal of
-  EUR 200.00 at 2026-10-10, then it is one transaction: current account minus
-  EUR 200.00, wallet plus EUR 200.00.
-- Given the same withdrawal with a EUR 2.00 fee, when I record it, then the fee is a
-  second flow in the same transaction, from the current account to the bank party.
-- Given a transfer between household accounts, when I view household in and out, then
-  only the fee appears; the transfer itself does not.
+  EUR 200.00 at 2026-10-10, then it is one transaction with two flows: EUR -200.00 on
+  the current account and EUR +200.00 on the wallet.
+- Given the same withdrawal with a EUR 2.00 fee, when I record it, then it is one
+  transaction with three flows: EUR -202.00 on the current account, EUR +200.00 on the
+  wallet and EUR +2.00 on Example Bank's implicit account.
+- Given that withdrawal with a fee, when I view household in and out, then only the
+  EUR 2.00 on Example Bank's account appears, as out; the flows on household accounts
+  do not.
 - Given a transfer of EUR 1,000.00 from Alex's account to the joint 50/50 account, when
   I view per member, then Alex shows EUR -500.00 and Sam EUR +500.00 under "between
   members", and neither shows it as in or out (ADR-0012).
@@ -228,6 +240,8 @@ Acceptance criteria:
 - Activity: A1. Task: A1.7 Classify. Release: R1.
 - As a household member, I want to assign a purpose to a flow, so that I can see where
   money goes.
+- **OQ:** what a purpose is assigned to (one flow or the whole transaction, and on
+  which side) is open (OQ-034). The criteria below are provisional.
 
 Acceptance criteria:
 
@@ -287,10 +301,12 @@ Acceptance criteria:
 
 - Given flows in October 2026, when I view in and out for October 2026, then inflows and
   outflows are grouped by purpose, with flows without a purpose under "Unclassified".
-- Given transfers between household accounts, then they are excluded from the household
-  view.
-- Given flows against a system party (e.g. opening balances), then they are excluded
-  from every in and out view.
+- Given a transaction whose flows are all on household accounts (a transfer), then it
+  adds nothing to the household view.
+- Given a transaction with no flow on a household account, then it appears in no in
+  and out view (ADR-0013).
+- Given flows on a system party's account (e.g. the opening party's, for opening
+  balances), then they are excluded from every in and out view.
 - Given a flow from a joint account with shares 50/50, when I view per member, then each
   member is attributed half.
 - Given a period that starts before an account's opening balance, then the view states

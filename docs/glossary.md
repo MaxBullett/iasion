@@ -11,19 +11,26 @@ Kernel primitives are defined in detail in `docs/primitives.md`.
   held at an institution: a bank account is, a physical cash wallet or a self-custodied
   crypto wallet is not.
 - **Ownership share:** a party's fractional ownership of an account. Shares sum to 100%.
+- **Implicit account:** the one account created automatically for each party outside
+  the boundary, system parties included, and owned by it. When only a counterparty is
+  named, the flow is on its implicit account (ADR-0013).
 - **Unit:** what is counted (currency, security units, property).
 - **Position:** a quantity of a unit held in an account at a point in time.
 - **Claim:** a position representing an obligation between two parties.
 - **Nominal value:** the contractual or face value of a position.
 - **Valuation:** an estimate of what a position is worth, at a date, from a source.
-- **Flow:** a movement of units between two positions at a valid time.
+- **Flow:** a signed change to the position of one account: a quantity of a unit at a
+  valid time. A positive amount increases the position (ADR-0013).
 - **Transaction:** a group of flows that nets to zero per unit.
 - **Aggregate flow:** a flow that stands in for many flows over a period, e.g. a month
   of grocery spending entered as one amount. Its valid time is an interval, and it is
   never prorated (ADR-0009).
-- **Transfer:** a flow between two household accounts. Not income or spending for the
-  household. A transaction may combine transfers with other flows, e.g. a cash
-  withdrawal (transfer) with a fee (flow to the bank).
+- **Movement:** units going from one account to another. Derived from the flows of a
+  transaction, e.g. for a flow diagram; never stored (ADR-0013).
+- **Transfer:** flows on household accounts that offset each other within a
+  transaction: units moving between household accounts. Not income or spending for
+  the household. A transaction may combine a transfer with other flows, e.g. a cash
+  withdrawal with a fee: current account -202.00, cash wallet +200.00, bank +2.00.
 - **Generator:** a process producing expected flows over time.
 - **Series:** a time-indexed value, observed or simulated.
 - **Dimension:** a tag orthogonal to structure (purpose, pool, tax category).
@@ -72,7 +79,8 @@ From [ADR-0007](adr/0007-onboarding-present-first.md).
   Recorded as a checkpoint plus a transaction against the opening party, so positions
   remain the sum of flows (ADR-0011).
 - **Opening party:** the household's `system` party that is the counterparty of opening
-  balances. Outside the boundary; its flows never count as income or spending.
+  balances. Outside the boundary; flows on its account never count as income or
+  spending.
 - **System party:** a party that exists for bookkeeping, not in the world (opening
   party, later the suspense party).
 - **Coverage:** for one account, the intervals of valid time and whether recorded flows

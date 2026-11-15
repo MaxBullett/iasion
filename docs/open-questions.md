@@ -237,13 +237,15 @@ Status: open
 
 Raised by R1 event storming (H-03, H-05).
 
-- May only members own accounts in R1, or any party: someone outside the household who
-  co-owns an account, or the household itself, which `docs/primitives.md` lists as a
-  party?
-- "Household account" is used by the glossary (transfer) and by S-007, S-012 and S-013,
-  but is not defined. If a non-member can hold a share, is an account with mixed
-  ownership a household account, and how do net worth and in and out treat the
-  non-member's share?
+Update: [ADR-0013](adr/0013-signed-flows-on-accounts.md) lets every party own accounts and gives each party outside the boundary an implicit account. What
+remains:
+
+- "Household account" is used by the glossary (transfer), ADR-0013 and S-007, S-012 and
+  S-013, but is not defined. Is it an account all of whose owners are inside the
+  boundary? If a member and a non-member share an account, is it a household account,
+  and how do net worth and in and out treat the non-member's share?
+- May the household itself, which `docs/primitives.md` lists as a party, own an
+  account?
 - Is the boundary something a member changes, or in R1 simply the set of members?
 - Must an account's institution be a party of kind institution?
 
@@ -307,7 +309,10 @@ Open:
 - May a member be the counterparty end directly, e.g. money handed to Sam that enters
   no registered account? Is that in, out or between members?
 
-Status: open
+Status: resolved by [ADR-0013](adr/0013-signed-flows-on-accounts.md): flows are signed
+and one-sided and can fail to net; every flow is on an account, with an implicit account
+per party outside the boundary; a transaction need not touch a household account; a
+member is never a counterparty directly.
 
 ## OQ-026: Day boundary of positions, opening balances and checkpoints
 
@@ -353,6 +358,9 @@ Raised by R1 event storming (H-09, H-10).
   includes being the destination of a transfer. Is a checkpoint on it accepted?
 - An aggregate flow whose interval starts before the opening date and ends after it:
   rejected as a whole?
+- Implicit accounts have no opening balance and accept flows without one (ADR-0013).
+  Do the opening-balance rules apply to accounts registered for a party outside the
+  boundary (e.g. a loan account), or to household accounts only?
 
 Status: open
 
@@ -381,16 +389,15 @@ own (ADR-0010). The transaction is the versioned unit, and a correction restates
 whole transaction (ADR-0010). Open:
 
 - Does a flow keep a stable identity across versions of its transaction?
-- What happens to a flow's assignment when a correction changes its amount, replaces
-  its counterparty, removes it or splits it in two?
+- What happens to a flow's assignment when a correction changes its amount, moves it
+  to another account, removes it or splits it in two?
 - What happens to the assignments of a voided transaction?
 - Is there a limit to what a correction may change (accounts, parties, valid time,
   number of flows), or is the fact's ID the only thing that stays?
-- Which flows may carry a purpose? Transfers and flows against a system party are
-  excluded from in and out (S-013). Is assigning a purpose to them rejected, or
-  accepted and ignored?
 - Removing a purpose without replacing it: is that voiding the assignment?
 - Provenance includes a confidence (glossary). What is it for a manual assignment?
+
+Related: OQ-034 (what an assignment attaches to).
 
 Status: open
 
@@ -454,5 +461,55 @@ Raised by R1 event storming (H-21, H-22).
   purpose, or does it reduce the outflow?
 - The stories say "income" and "spending" (S-005, S-006, ADR-0011) as well as "in" and
   "out" (S-013, ADR-0012). Are these the same, and which terms go into the glossary?
+
+Status: open
+
+## OQ-034: Where a purpose assignment attaches
+
+Raised by R1 event storming (H-24), after ADR-0013.
+
+S-010 assigns a purpose to a flow. With signed, one-sided flows (ADR-0013), open:
+
+- Does a purpose attach to one flow or to the whole transaction?
+- If to a flow, on which side: the flow on the household account, or the flow on the
+  counterparty's account? Household in and out are read from the flows on
+  non-household accounts (ADR-0013). In a split, e.g. joint current account -80.00,
+  Corner Grocer +50.00 and +30.00, the flows that differ by purpose are on the
+  counterparty's account. In a cash withdrawal with a fee, only the flow on the bank's
+  account is out.
+- If to the transaction, a split cannot be one transaction, so one statement line
+  would no longer be one flow.
+- Which flows may carry a purpose? The flows of a transfer and flows on a system
+  party's account are excluded from in and out (S-013). Is assigning a purpose to them
+  rejected, or accepted and ignored?
+- An aggregate flow has a flow on each side like any other transaction. Same answer?
+
+Related: OQ-029.
+
+Status: open
+
+## OQ-035: Member attribution in transactions with flows in both directions
+
+Raised by R1 event storming (H-25), after ADR-0013.
+
+Member views attribute through ownership shares, and each member reconciles: opening +
+in - out + between members = closing (ADR-0012). ADR-0012 words its rule for a transfer
+with one source, one destination and one amount. A transaction can now have any number
+of flows (ADR-0013), and household in and out are the flows on non-household accounts.
+Which member is each of them attributed to?
+
+- When all flows on household accounts point the same way, attributing in proportion
+  to them suggests itself, but no spec says so. Example: ACME GmbH -3,800.00, Alex's
+  current account +3,000.00, joint current account +800.00.
+- When they point both ways and the accounts have different owners, the answer is not
+  determined. Example: joint current account -202.00 (Alex 50%, Sam 50%), Alex's cash
+  wallet +200.00, Example Bank +2.00. Attributed positions change by +99.00 for Alex
+  and -101.00 for Sam, and household out is 2.00. If the fee follows the account it
+  left, each has out 1.00 and between members is +100.00 and -100.00. If it follows
+  the member who got the cash, Alex has out 2.00 and between members is +101.00 and
+  -101.00. Both reconcile.
+- Deriving movements (ADR-0013) needs the same decomposition: which account did the
+  fee come from?
+- Does ADR-0012 need a successor?
 
 Status: open
