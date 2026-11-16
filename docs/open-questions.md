@@ -300,7 +300,8 @@ refers to it. Still open:
 
 - How purpose names are compared, and whether renaming to an existing name fails.
 - How an account, a member or a purpose that is in use is retired (closing an
-  account, a member leaving, a purpose no longer offered).
+  account, a member leaving, a purpose no longer offered): confirmed not R1, parked
+  as OQ-042.
 
 ## OQ-024: Representation of ownership shares and rounding of attributed amounts
 
@@ -693,5 +694,22 @@ was. A real change of ownership from a date on needs shares with an effective da
 Attribution (ADR-0018, ADR-0019) would then use the shares valid on each flow's date,
 and a change of shares itself moves attributed positions between members. How is that
 shown?
+
+Status: open, parked
+
+## OQ-042: Archiving: closing an account, a member leaving, retiring a purpose
+
+Raised in review of OQ-023 (H-32). For a later release.
+
+ADR-0025 voids a party, an account or a purpose only while no current fact refers to
+it. Something that is in use cannot be voided, and R1 has no other way to end it.
+Confirmed in review: closing an account, a member leaving the household and retiring
+a purpose are not R1. Open for the release that adds them:
+
+- Does an archived thing have an end date (valid time), and what do views show for
+  dates before and after it?
+- What happens to the position of a closed account, to the ownership shares of a
+  member who left (OQ-041), and to the assignments of a retired purpose?
+- Can an archived thing still be corrected, and can it be restored?
 
 Status: open, parked
