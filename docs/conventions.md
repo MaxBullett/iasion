@@ -147,11 +147,12 @@ Tool choices marked _open_ are settled when the frontend is scaffolded.
 
 ## Code conventions (deferred)
 
-To be written once the first crates exist:
+Workspace and crate layout, where tests live, and workspace lints are decided in
+[ADR-0034](adr/0034-workspace-layout.md). To be written once the first
+crates exist:
 
-- Workspace and crate layout
 - Error handling libraries
-- Test layout and naming, fixture loading
+- Test naming and fixture loading
 - API design and versioning
 - Frontend structure and state management
 - Formatting and lint configuration

@@ -19,7 +19,7 @@ Specs are never generated from code.
 | `docs/event-storming/` | Event stormings per release. Closed ones are not reopened. |
 | `docs/adr/` | Architecture decision records (index in `docs/adr/README.md`) |
 | `fixtures/` | Test fixtures. `fixtures/private/` is gitignored. |
-| `<module>/SPEC.md` | Per-module spec (once modules exist) |
+| `crates/<context>/SPEC.md` | Per-context spec (once the crates exist, ADR-0034) |
 
 Read `goal-and-requirements.md`, `docs/primitives.md`, `docs/glossary.md` and
 `docs/conventions.md` before any task.
