@@ -28,7 +28,10 @@ versioned facts with recorded time, which covers corrections and "as known on" q
 without full event sourcing. What remains open is whether contract lifecycles go
 further.
 
-Status: proposed
+Update: [ADR-0033](adr/0033-persistence-postgresql-versioned-facts.md) uses no event
+sourcing in R1.
+
+Status: resolved for R1; open for contract lifecycles
 
 ## OQ-004: Plugin mechanism
 
@@ -49,7 +52,9 @@ Status: proposed
 
 Database choice not decided.
 
-Status: open
+Status: resolved, recorded in
+[ADR-0033](adr/0033-persistence-postgresql-versioned-facts.md): PostgreSQL only, one
+schema per context, versioned facts in append-only tables.
 
 ## OQ-007: Contributor licensing
 

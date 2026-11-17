@@ -138,8 +138,8 @@ live in Classification.
 | Frontend | Vue 3, TypeScript | [ADR-0003](docs/adr/0003-vue-frontend.md) |
 | Frontend delivery | Responsive web app, PWA, no native or WASM | [ADR-0008](docs/adr/0008-responsive-web-no-native.md) |
 | Plugin mechanism | Compiled-in crates | [ADR-0005](docs/adr/0005-plugins-as-compiled-crates.md) |
-| Persistence | _open_ | OQ-006 |
-| Event sourcing scope | _proposed: contract lifecycles only_ | OQ-003 |
+| Persistence | PostgreSQL 18, one schema per context, sqlx | [ADR-0033](docs/adr/0033-persistence-postgresql-versioned-facts.md) |
+| Event sourcing scope | None in R1: versioned facts in append-only tables. Contract lifecycles open. | [ADR-0033](docs/adr/0033-persistence-postgresql-versioned-facts.md), OQ-003 |
 
 ## Decisions
 
