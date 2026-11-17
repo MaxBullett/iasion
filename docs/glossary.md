@@ -6,10 +6,16 @@ Kernel primitives are defined in detail in `docs/primitives.md`.
 ## Kernel
 
 - **Party:** anything that can hold value or claims. Includes external counterparties.
+- **Party kind:** what sort of party it is: natural person, legal entity, institution,
+  public body, aggregate or system.
+- **Counterparty:** a party outside the boundary, seen from the household. Members are
+  never counterparties (ADR-0013).
 - **Aggregate party:** a party standing in for many small counterparties.
 - **Account:** a container holding positions, owned by one or more parties. Optionally
   held at an institution: a bank account is, a physical cash wallet or a self-custodied
   crypto wallet is not.
+- **Institution:** the party an account is held at, if any. Always of kind institution
+  (ADR-0027).
 - **Ownership share:** a party's fractional ownership of an account, stored as an exact
   fraction. The shares of an account sum to exactly 1 (ADR-0019).
 - **Implicit account:** the one account created automatically for each party outside
@@ -18,9 +24,13 @@ Kernel primitives are defined in detail in `docs/primitives.md`.
 - **Household account:** an account all of whose owners are members. An account owned
   by a member together with a party outside the boundary is rejected in R1 (ADR-0023).
 - **Unit:** what is counted (currency, security units, property).
+- **Reporting currency:** the household's single currency for views. EUR in R1.
 - **Minor unit:** the smallest amount of a unit that is attributed to a member, e.g. the
   cent for EUR (ADR-0019).
 - **Position:** a quantity of a unit held in an account at a point in time.
+- **Derived position:** the position of an account as of a date, computed as the sum of
+  its flows with a valid date on or before it. An aggregate flow counts from the last
+  day of its interval (ADR-0009).
 - **Claim:** a position representing an obligation between two parties.
 - **Nominal value:** the contractual or face value of a position.
 - **Valuation:** an estimate of what a position is worth, at a date, from a source.
@@ -45,6 +55,12 @@ Kernel primitives are defined in detail in `docs/primitives.md`.
 - **Generator:** a process producing expected flows over time.
 - **Series:** a time-indexed value, observed or simulated.
 - **Dimension:** a tag orthogonal to structure (purpose, pool, tax category).
+- **Purpose:** a dimension, and in R1 the only one: what a flow was for, from a
+  vocabulary the household defines. Assigned to a single flow that counts in in and out
+  (ADR-0016).
+- **Dimension assignment:** the fact that links a dimension value to a flow, with
+  provenance. A dependent fact: it follows its flow when the transaction is corrected or
+  voided (ADR-0016).
 - **Provenance:** who or what assigned a dimension, with confidence and confirmation
   status. A manual assignment is confirmed, with confidence certain (ADR-0017).
 - **Constraint:** a predicate over positions and flows.
@@ -76,6 +92,14 @@ Kernel primitives are defined in detail in `docs/primitives.md`.
 
 ## Views
 
+- **Balance sheet:** the view of derived positions per account as of a date, for the
+  household or a member.
+- **Net worth:** the sum of all positions of household accounts as of a date.
+- **In and out (view):** the view of a period: in and out netted per purpose and listed
+  as income and spending, with the reconciliation from opening to closing (ADR-0020,
+  ADR-0022).
+- **Unclassified:** a flow that can carry a purpose and has no current purpose
+  assignment.
 - **Income, spending:** view terms. A view by purpose nets in and out per purpose over
   its period. A purpose with net in is income, one with net out is spending.
   Unclassified is shown as in and out separately (ADR-0022). A purpose whose in and
@@ -89,6 +113,8 @@ Kernel primitives are defined in detail in `docs/primitives.md`.
   provides one. Orders transactions within one valid date; never changes the valid
   date (ADR-0014).
 - **Recorded time:** when the system learned about it.
+- **As known on:** a query that uses the versions that were current at a given recorded
+  time (a UTC instant), instead of current knowledge (ADR-0010).
 - **As-of date:** the date separating reconciled facts from projections in a computation.
 - **Version:** one recorded state of a fact. A fact has a stable ID and one or more
   versions, each with its recorded time (ADR-0010) and the member who recorded it
@@ -120,12 +146,14 @@ From [ADR-0007](adr/0007-onboarding-present-first.md).
   in each are complete, partial or unknown. Missing data is never read as zero.
 - **Checkpoint:** a position in an account observed at the end of a date, e.g. a
   statement balance. Derived positions are compared against it; it does not replace them.
+- **Checkpoint difference:** a checkpoint minus the derived position at the same date.
 - **Suspense party:** the counterparty for flows that book unexplained differences
   between a checkpoint and the derived position. Its balance, the suspense balance,
   is a data quality metric.
 - **Classification coverage:** for a period, the extent to which its recorded flows
   carry dimension assignments. Distinct from coverage, which is about whether flows
   are recorded at all. How it is measured is open (OQ-013).
+- **Exact (figure):** a figure without flags (ADR-0021).
 - **Approximate (position):** a derived position whose as-of date is on or after the
   first day and before the last day of the interval of an aggregate flow on that
   account (ADR-0009, ADR-0014). A total is approximate if any of its parts is
