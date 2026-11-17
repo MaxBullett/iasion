@@ -448,6 +448,11 @@ Acceptance criteria:
 - Given a household exists, then the email named for first setup has no role: a
   request for it is served only if that email is a login identity of a member
   (ADR-0026).
+- Given a request served in Alex's context, when it records, corrects or voids a fact,
+  then the new version records Alex as the member who recorded it, next to its
+  recorded time (ADR-0028).
+- Given a request that is denied, then nothing about it is stored with the household's
+  data. It appears in operational logs only (ADR-0028).
 
 ### S-015: Correct household data
 

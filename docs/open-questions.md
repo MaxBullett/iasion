@@ -243,12 +243,11 @@ Status: decided in review in part, recorded in
 [ADR-0024](adr/0024-first-setup-and-login-identities.md): an environment
 variable names the email allowed to run first setup; setup creates the household and
 the first member; login identities map to members, are kept on their own and are
-managed in the app; a second household is rejected. Still open:
-
-- Does every version of a fact record which member recorded it? What else is the
-  acting member used for in R1?
-- Are sign-ins or denied requests recorded?
-- What happens when no login identity is left: OQ-040.
+managed in the app; a second household is rejected. The remaining points are recorded
+in [ADR-0028](adr/0028-fact-versions-record-the-member.md): every version
+of a fact records the member who recorded it; sign-ins and denied requests are not
+facts and appear in operational logs only. What happens when no login identity is
+left: OQ-040.
 
 ## OQ-022: Account owners, household accounts and the boundary
 

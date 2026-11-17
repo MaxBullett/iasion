@@ -35,3 +35,4 @@ supersedes the old one and update the old one's status.
 | [0025](0025-corrections-to-household-data.md) | Parties, accounts, ownership shares and purposes are corrected as versions | Accepted |
 | [0026](0026-last-login-identity-and-recovery.md) | The last login identity cannot be removed, and recovery is an operator task | Accepted |
 | [0027](0027-institution-is-a-party-of-kind-institution.md) | An account's institution is a party of kind institution | Accepted |
+| [0028](0028-fact-versions-record-the-member.md) | Every fact version records the member who recorded it; sign-ins are not facts | Accepted |

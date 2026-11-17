@@ -62,6 +62,9 @@ to avoid guessing.
 - Parties, accounts, ownership shares and purposes are versioned the same way. A
   corrected ownership share applies to all dates; nothing has an effective date in R1
   (ADR-0025).
+- Every version records the member who recorded it, next to its recorded time.
+  Sign-ins and denied requests are not facts: they are not stored, and appear in
+  operational logs only (ADR-0028).
 - Queries use current knowledge (latest non-void version) by default. "As known on"
   queries select versions by recorded time.
 

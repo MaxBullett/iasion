@@ -89,7 +89,8 @@ Kernel primitives are defined in detail in `docs/primitives.md`.
 - **Recorded time:** when the system learned about it.
 - **As-of date:** the date separating reconciled facts from projections in a computation.
 - **Version:** one recorded state of a fact. A fact has a stable ID and one or more
-  versions, each with its recorded time (ADR-0010).
+  versions, each with its recorded time (ADR-0010) and the member who recorded it
+  (ADR-0028).
 - **Correction:** a new version of a fact that replaces the previous one in current
   views. Not a reversal entry. Rejected if it would invalidate an independent recorded
   fact, such as another transaction or a checkpoint (ADR-0015).
