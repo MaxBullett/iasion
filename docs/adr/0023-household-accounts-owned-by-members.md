@@ -3,6 +3,7 @@
 - Status: accepted
 - Date: 2026-11-15
 - Refines: ADR-0013
+- Refined by: ADR-0027
 - Resolves: OQ-022, except whether an institution must be a party of kind institution
 
 ## Context

@@ -122,6 +122,9 @@ Acceptance criteria:
 - Given member Alex and party "ACME GmbH", when I register an account owned by both,
   then it is rejected with a typed error: the owners of an account are either all
   members or all outside the boundary (ADR-0023).
+- Given party "ACME GmbH" of kind legal entity, when I register an account with ACME
+  GmbH as its institution, then it is rejected with a typed error: an account's
+  institution is a party of kind institution (ADR-0027).
 - Given any account in R1, when I look at its units, then it holds only EUR.
 
 ### S-004: Record an opening balance

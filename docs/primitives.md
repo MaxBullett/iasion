@@ -65,7 +65,9 @@ state, legal entities, other private persons. The household itself is not a part
 A container that holds positions. Owned by one or more parties with ownership shares.
 
 - The institution is optional. A bank or brokerage account has one; a physical cash
-  wallet or a self-custodied crypto wallet does not.
+  wallet or a self-custodied crypto wallet does not. If an account names one, it is a
+  party of kind institution
+  ([ADR-0027](adr/0027-institution-is-a-party-of-kind-institution.md)).
 - Cash is held in accounts like any other unit. Withdrawing cash is a transfer between
   two household accounts, not an outflow.
 - Shares are exact fractions and sum to exactly 1 per account

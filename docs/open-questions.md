@@ -270,7 +270,9 @@ Status: decided in review except for the last point, recorded in
 [ADR-0023](adr/0023-household-accounts-owned-by-members.md): a household
 account is an account all of whose owners are members; mixed ownership is rejected in
 R1 (parked as OQ-039); the household is not a party; the boundary is the set of
-members. Still open: whether an institution must be a party of kind institution.
+members. The last point is recorded in
+[ADR-0027](adr/0027-institution-is-a-party-of-kind-institution.md):
+an account's institution is a party of kind institution.
 
 ## OQ-023: Correcting parties, accounts, ownership shares and purposes
 
