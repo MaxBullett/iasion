@@ -1,6 +1,7 @@
 # Story map
 
-Status: backbone, A1 tasks, first A2 tasks, R1 stories (draft, under review).
+Status: backbone, A1 tasks, first A2 tasks, R1 stories (reviewed in the R1 event
+storming).
 Tasks for A3 to A5 and stories beyond R1 follow.
 
 Left to right is the user's flow, not build order. Build order comes from release slices.
