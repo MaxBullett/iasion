@@ -254,8 +254,10 @@ Acceptance criteria:
 - Given a cash withdrawal with a fee, when I correct the fee, then a new version of the
   whole transaction is stored and it still nets to zero; a version that does not net to
   zero is rejected.
-- Given a corrected flow, when I view figures as known on a date before the correction
-  was recorded, then the original amount is used.
+- Given a corrected flow, when figures are queried as known on a time before the
+  correction was recorded, then the original amount is used. The time is a UTC
+  instant, not a date. In R1 this is a query capability of the backend, covered by
+  tests, with no UI.
 - Given a correction, then no reversing flow appears in any view.
 - Given an opening balance, when I correct its amount, then a new version of the
   opening balance is stored, with its checkpoint and its transaction written together

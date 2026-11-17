@@ -499,7 +499,8 @@ r1.md says R1 has no UI for recorded time. Open:
 - Do names, ownership shares and purposes also apply as known on that time (OQ-023)?
   Yes (ADR-0025).
 
-Status: open
+Status: resolved in review: in R1 "as known on" is a query capability of the backend,
+covered by tests, with no UI. Its parameter is a UTC instant, not a date (S-008).
 
 ## OQ-032: Finding recorded transactions
 
