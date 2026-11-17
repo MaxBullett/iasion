@@ -228,6 +228,11 @@ Acceptance criteria:
   members", and neither shows it as in or out (ADR-0012).
 - Given a transfer into a household account without an opening balance, when I record
   it, then it is rejected with a typed error (ADR-0015).
+- Given Alex's cash withdrawals in October 2026, when I record them as one aggregate
+  transfer of EUR 400.00 from Alex's current account to Alex's cash wallet for
+  2026-10-01 to 2026-10-31, then it is accepted, and the derived positions of both
+  accounts are approximate as of any date from 2026-10-01 up to, but not including,
+  2026-10-31 (ADR-0009, ADR-0014).
 
 ### S-008: Correct or void a flow
 
