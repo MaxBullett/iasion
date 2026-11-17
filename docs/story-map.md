@@ -205,6 +205,11 @@ Acceptance criteria:
   later, then it includes the full EUR 640.00 and is not marked approximate.
 - Given an interval whose end is before its start, when I record the flow, then it is
   rejected.
+- Given that aggregate flow and an individual flow of EUR 54.20 at Corner Grocer on
+  the same account at 2026-10-14, then both count. R1 does not detect that the same
+  spending may be recorded twice; a checkpoint shows it as a difference. In R2,
+  imported detail for an account and interval replaces the aggregates on that account
+  whose interval lies within it (ADR-0009).
 
 ### S-007: Record a transfer between own accounts
 
