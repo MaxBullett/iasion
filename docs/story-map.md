@@ -358,6 +358,13 @@ Acceptance criteria:
   then each is listed with its date, its amount and its current difference.
 - Given a checkpoint with a difference followed by a later checkpoint without one,
   then the list still shows the earlier difference at its own date.
+- Given a checkpoint of EUR 260.00 at 2026-10-31 against a derived position of
+  EUR 310.00, when I correct its amount to EUR 310.00, then its difference is shown as
+  EUR 0.00 and the earlier version is still stored (ADR-0010).
+- Given a checkpoint, when I correct its date to a date before the account's opening
+  balance, then it is rejected with a typed error.
+- Given a checkpoint, when I void it, then it is no longer listed and no view uses it,
+  and its versions are still stored.
 
 ### S-012: View the balance sheet
 
