@@ -27,6 +27,8 @@ Kernel primitives are defined in detail in `docs/primitives.md`.
 - **Flow:** a signed change to the position of one account: a quantity of a unit at a
   valid time. A positive amount increases the position (ADR-0013).
 - **Transaction:** a group of flows that nets to zero per unit.
+- **Note:** optional free text on a transaction, written by a member. Part of the
+  transaction's version: changing it is a correction.
 - **Aggregate flow:** a flow that stands in for many flows over a period, e.g. a month
   of grocery spending entered as one amount. Its valid time is an interval, and it is
   never prorated (ADR-0009).

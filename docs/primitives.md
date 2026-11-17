@@ -139,6 +139,8 @@ signed amount. A positive amount increases the position. A transaction groups fl
   the interval up to, but not including, its last day are approximate, and period
   views that only partly overlap it are partial
   ([ADR-0009](adr/0009-valid-time-intervals-for-aggregate-flows.md), [ADR-0014](adr/0014-end-of-day-positions-and-occurred-at.md)).
+- A transaction may carry an optional **note**, free text written by a member. It is
+  part of the transaction's version.
 - A transaction may carry an optional **occurred-at**, a UTC instant, only when its
   source provides one. It orders transactions within one valid date and never changes
   the valid date ([ADR-0014](adr/0014-end-of-day-positions-and-occurred-at.md)).

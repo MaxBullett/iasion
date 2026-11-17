@@ -512,7 +512,8 @@ explained" all presuppose that a member can find recorded transactions, e.g. per
 account and period. No R1 story provides that. Is a story missing, or is it meant to be
 part of an existing one?
 
-Also: no story gives a transaction a free-text note. Intended?
+Also: no story gives a transaction a free-text note. Intended? Decided in review: a
+transaction carries an optional note, versioned with it (S-005, S-008).
 
 Input: S-011 now lists an account's checkpoints, a first piece of an account detail
 view.

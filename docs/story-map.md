@@ -174,6 +174,8 @@ Acceptance criteria:
   it is rejected with a typed error (ADR-0013).
 - Given any recorded transaction, then it carries a valid time (the date entered) and a
   recorded time (when it was saved).
+- Given a transaction I record, when I add a note such as "October salary, includes
+  bonus", then the note is stored with the transaction. A note is optional.
 - Given an account with an opening balance at 2026-09-30, when I record a flow on it
   dated 2026-09-30 or earlier, then it is rejected with a typed error. (The opening
   balance is the end-of-day balance, ADR-0014. R1 has no backfill feature; moving the
@@ -259,6 +261,8 @@ Acceptance criteria:
   instant, not a date. In R1 this is a query capability of the backend, covered by
   tests, with no UI.
 - Given a correction, then no reversing flow appears in any view.
+- Given a transaction with a note, when I change only the note, then a new version of
+  the transaction is stored; its flows and their purposes are unchanged.
 - Given an opening balance, when I correct its amount, then a new version of the
   opening balance is stored, with its checkpoint and its transaction written together
   (ADR-0015).
