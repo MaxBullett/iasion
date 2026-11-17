@@ -16,6 +16,7 @@ Specs are never generated from code.
 | `docs/story-map.md` | Activities, tasks, stories, with IDs |
 | `docs/releases/` | Release definitions: scope, done criteria, enablers |
 | `docs/open-questions.md` | Unresolved decisions and unknowns |
+| `docs/event-storming/` | Event stormings per release. Closed ones are not reopened. |
 | `docs/adr/` | Architecture decision records (index in `docs/adr/README.md`) |
 | `fixtures/` | Test fixtures. `fixtures/private/` is gitignored. |
 | `<module>/SPEC.md` | Per-module spec (once modules exist) |
@@ -101,8 +102,12 @@ only. Do not claim a change passed these checks unless they ran.
 - One branch per story, decision or chore. Name: `<type>/<id>-<slug>`, e.g.
   `feat/s-006-record-spending`, `docs/adr-0013-persistence`, `chore/secret-scanning`.
   Use the most specific ID available (story, ADR, OQ); omit it only for chores without one.
-- Pull requests are squash-merged. The squash commit on `main` follows the message
-  format below and is the record that history readers rely on.
+- Pull requests are squash-merged by default. The squash commit on `main` follows the
+  message format below and is the record that history readers rely on.
+- Exception: a pull request whose commits each record a separate accepted decision
+  (e.g. one ADR per commit) may be rebase-merged, so that each decision keeps its own
+  commit on `main`. Every commit of such a pull request lands on `main` as it is, so
+  each one must follow the message format below.
 
 ### Commits on a branch
 
@@ -142,7 +147,9 @@ Refs: <IDs>
 ## Workflow per story
 
 1. Confirm the story and its acceptance criteria (Given/When/Then) exist in the spec.
-   Create the story branch.
+   Create the story branch. A question the specs do not answer is resolved in that
+   branch: an open question, and an ADR if needed (rule 1). A closed event storming is
+   not reopened.
 2. Write tests from the acceptance criteria first. Commit them. Stop for human review of
    the tests.
 3. Implement until tests pass, committing each green step. Do not change tests to make
@@ -160,5 +167,6 @@ Refs: <IDs>
 
 ## Status
 
-Pre-code. R1 is defined (`docs/releases/r1.md`) and its open questions are resolved.
-Next: event storming for R1, then infrastructure ADRs and the walking skeleton.
+Pre-code. R1 is defined (`docs/releases/r1.md`) and its event storming is closed
+(`docs/event-storming/r1.md`, context map in `architecture.md`). Next: infrastructure
+ADRs and the walking skeleton.

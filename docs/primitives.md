@@ -1,8 +1,13 @@
 # Kernel primitives
 
-Status: draft v0.4. Sections marked *(ADR-0007)* follow from
+Status: draft v0.5. Sections marked *(ADR-0007)* follow from
 [ADR-0007](adr/0007-onboarding-present-first.md); their open details are listed in
-`docs/open-questions.md`.
+`docs/open-questions.md`. Flows follow
+[ADR-0013](adr/0013-signed-flows-on-accounts.md); the day boundary and occurred-at
+follow [ADR-0014](adr/0014-end-of-day-positions-and-occurred-at.md); the life of
+an opening balance follows [ADR-0015](adr/0015-life-of-an-opening-balance.md); flow
+identity follows [ADR-0016](adr/0016-purposes-on-counterparty-flows.md). Ending
+assignments, member attribution and rounding follow ADR-0017 to ADR-0019.
 
 The kernel models money the way stock-flow consistent models do: everything is a stock
 held by a party, or a flow between stocks, and nothing appears or disappears without a
@@ -20,7 +25,7 @@ primitives. Users and most code should never see `Generator<Flow<Unit>>`.
 | Account | A container at an institution, owned by one or more parties. |
 | Unit | What is being counted. |
 | Position | A quantity of a unit held in an account at a point in time. |
-| Flow / Transaction | Units moving between positions at a point in time. |
+| Flow / Transaction | A signed change to a position; a transaction groups flows that net to zero. |
 | Generator | A process that produces expected flows over time. |
 | Series | A time-indexed value, observed or simulated. |
 | Dimension | A tag orthogonal to structure, with provenance. |
@@ -29,21 +34,29 @@ primitives. Users and most code should never see `Generator<Flow<Unit>>`.
 
 ## Party
 
-Anything that can hold value or claims: household members, the household itself,
-employers, banks, the state, legal entities, other private persons.
+Anything that can hold value or claims: household members, employers, banks, the
+state, legal entities, other private persons. The household itself is not a party
+([ADR-0023](adr/0023-household-accounts-owned-by-members.md)).
 
-- External parties are modeled explicitly so every flow is two-sided.
+- External parties are modeled explicitly so every transaction is two-sided.
+- Every party can own accounts. Each party outside the boundary, system parties
+  included, has one **implicit account**, created with the party. Members have none:
+  what a member holds is in an account they own, and a member is never a counterparty
+  directly ([ADR-0013](adr/0013-signed-flows-on-accounts.md)).
 - Parties have a kind (natural person, legal entity, institution, public body,
   aggregate, system). `system` parties exist for bookkeeping, not in the world, and are
   never used for real counterparties.
 - Each household has one **opening party** (kind `system`, outside the boundary). It is
-  the counterparty of opening balances; flows against it never count as income or
-  spending ([ADR-0011](adr/0011-opening-balance-as-transaction.md)).
+  the counterparty of opening balances; flows on its account never count as in or out
+  ([ADR-0011](adr/0011-opening-balance-as-transaction.md)).
 - **Aggregate parties** (e.g. "various grocery merchants") keep capture overhead low
   without breaking two-sidedness.
 - A **boundary** defines which parties are inside the household for reporting. Parties
   outside it (e.g. a company owned by a member) appear as counterparties; consolidation
   is a later concern.
+- In R1 the boundary is the set of members, and an account is owned either by members
+  only (a household account) or by parties outside the boundary only
+  ([ADR-0023](adr/0023-household-accounts-owned-by-members.md)).
 - *(ADR-0007)* A **suspense party** is the counterparty for flows that book
   unexplained differences at checkpoints. Its kind and scope are open (OQ-011).
 
@@ -52,17 +65,37 @@ employers, banks, the state, legal entities, other private persons.
 A container that holds positions. Owned by one or more parties with ownership shares.
 
 - The institution is optional. A bank or brokerage account has one; a physical cash
-  wallet or a self-custodied crypto wallet does not.
+  wallet or a self-custodied crypto wallet does not. If an account names one, it is a
+  party of kind institution
+  ([ADR-0027](adr/0027-institution-is-a-party-of-kind-institution.md)).
 - Cash is held in accounts like any other unit. Withdrawing cash is a transfer between
   two household accounts, not an outflow.
-- Shares per account sum to 100%.
+- Shares are exact fractions and sum to exactly 1 per account
+  ([ADR-0019](adr/0019-exact-shares-and-whole-minor-units.md)).
+- Parties, accounts, ownership shares and purposes are corrected as versions, like
+  facts. A corrected ownership share applies to all dates
+  ([ADR-0025](adr/0025-corrections-to-household-data.md)).
 - One party may own many accounts; one account may have many owners.
+- An implicit account is owned by its party alone. More specific accounts can be
+  registered for a party outside the boundary, e.g. a loan account
+  ([ADR-0013](adr/0013-signed-flows-on-accounts.md)).
 - Attribution to members (e.g. for tax) runs through ownership shares, never through
   the account itself.
-- Each account has at most one **opening balance**: its positions at a stated date,
-  taken as given. It is recorded as a checkpoint plus a transaction against the
-  opening party, so positions at every date are the sum of flows
-  ([ADR-0011](adr/0011-opening-balance-as-transaction.md)).
+- Attribution allocates each flow to members in whole minor units. Money out is
+  attributed to the members whose money paid it, money in to the members whose
+  account received it, and what remains of a member's change in positions is between
+  members ([ADR-0018](adr/0018-member-attribution-of-in-and-out.md),
+  [ADR-0019](adr/0019-exact-shares-and-whole-minor-units.md)).
+- Each account has at most one **opening balance**: its positions at the end of a
+  stated date, taken as given. It is recorded as a checkpoint plus a transaction
+  against the opening party, so positions at every date are the sum of flows
+  ([ADR-0011](adr/0011-opening-balance-as-transaction.md)). All other flows on the
+  account are dated after it ([ADR-0014](adr/0014-end-of-day-positions-and-occurred-at.md)).
+- An opening balance is one fact with its own identity and versions; its checkpoint
+  and its transaction are parts that are written together. An account has at most one
+  non-void opening balance, and a household account takes no flow or checkpoint
+  without one. A correction of it is rejected if it would invalidate a recorded flow
+  or checkpoint ([ADR-0015](adr/0015-life-of-an-opening-balance.md)).
 - *(ADR-0007)* Each account has **coverage** intervals, each marked
   complete, partial or unknown. Accounts have independent opening balances and
   coverage; there is no household-wide cutoff date.
@@ -82,27 +115,48 @@ A party's holding of a quantity of a unit, inside an account, at a point in time
   a liability for the other.
 - A position has a **nominal value** and may have one or more **valuations**. These can
   differ materially (e.g. a claim against an entity that cannot repay it).
-- *(ADR-0007)* A **checkpoint** is an observed position, e.g. a statement
-  balance. It does not replace the derived position. A difference between the two is
-  booked as a flow against the suspense party (OQ-010).
+- *(ADR-0007)* A **checkpoint** is a position observed at the end of a date, e.g. a
+  statement balance. It does not replace the derived position. A difference between
+  the two is booked as a flow against the suspense party (OQ-010).
 
 ## Flow and Transaction
 
-A flow moves a quantity of a unit from one position to another at a valid time.
-A transaction groups flows.
+A flow is a signed change to the position of one account: an account, a unit and a
+signed amount. A positive amount increases the position. A transaction groups flows
+([ADR-0013](adr/0013-signed-flows-on-accounts.md)).
 
-- **Invariant:** the flows of a transaction net to zero per unit.
+- **Invariant:** the flows of a transaction net to zero per unit. The transaction
+  enforces it; a set of flows that does not net to zero is rejected. Example, a cash
+  withdrawal with a fee: current account -202.00, cash wallet +200.00, bank +2.00.
+- Every flow is on an account, never directly against a party.
+- A transaction need not touch a household account. Transactions between outside
+  parties affect no household view.
+- A **movement**, units going from one account to another, is derived from the flows
+  of a transaction. It is never stored.
 - A transaction's valid time is a civil date or a closed interval of civil dates, and
   all its flows share it. An **aggregate flow** uses an interval and stands in for many
-  flows over that period. It is never prorated: derived positions strictly inside the
-  interval are approximate, and period views that only partly overlap it are partial
-  ([ADR-0009](adr/0009-valid-time-intervals-for-aggregate-flows.md)).
+  flows over that period. It is never prorated: derived positions from the first day of
+  the interval up to, but not including, its last day are approximate, and period
+  views that only partly overlap it are partial
+  ([ADR-0009](adr/0009-valid-time-intervals-for-aggregate-flows.md), [ADR-0014](adr/0014-end-of-day-positions-and-occurred-at.md)).
+- A transaction may carry an optional **note**, free text written by a member. It is
+  part of the transaction's version.
+- A transaction may carry an optional **occurred-at**, a UTC instant, only when its
+  source provides one. It orders transactions within one valid date and never changes
+  the valid date ([ADR-0014](adr/0014-end-of-day-positions-and-occurred-at.md)).
+- A flow has a stable identity within its transaction across versions. Facts that
+  depend on a flow, such as dimension assignments, reference the transaction and the
+  flow, and follow it when the transaction is corrected or voided
+  ([ADR-0016](adr/0016-purposes-on-counterparty-flows.md)).
 - Facts use exact decimals and are append-only. A correction is a new version of the
   whole transaction; voiding is a final version marking it void
   ([ADR-0010](adr/0010-corrections-as-versions.md)).
 - A realized flow may be linked to the generator that predicted it (reconciliation).
 - *(ADR-0007)* **Missing data is never zero.** An aggregate of flows over an
   interval that is not completely covered is partial or unknown, and must say so.
+- A figure carries flags (approximate; partial, with named exclusions), and a total
+  takes the union of the flags of its parts
+  ([ADR-0021](adr/0021-figures-carry-flags.md)).
 
 ## Generator
 
@@ -141,6 +195,8 @@ A time-indexed value: prices, rates, indices, inflation, income shocks.
 - Observed history and simulated paths use the same shape.
 - All modules in one projection run read the same simulated paths, so correlations
   are preserved.
+- A series has its own time resolution. Intraday market prices are series, not ledger
+  facts ([ADR-0014](adr/0014-end-of-day-positions-and-occurred-at.md)).
 
 ## Dimension
 
@@ -150,6 +206,8 @@ A tag orthogonal to structure: purpose, pool, tax category, productive/unproduct
   importer), confidence, and whether it has been confirmed.
 - Plugins may define dimension vocabularies (e.g. a jurisdiction plugin defines
   deductible categories).
+- A purpose is assigned to a single flow that counts in in and out
+  ([ADR-0016](adr/0016-purposes-on-counterparty-flows.md)).
 
 ## Constraint
 
@@ -167,6 +225,10 @@ Evidence that facts are derived from: statements, receipts, contracts, assessmen
 
 - All facts are **bitemporal**: valid time (when it happened in the world) and recorded
   time (when the system learned it).
+- Valid time is a civil date or an interval of civil dates, never a time of day. A
+  position at a date is its end-of-day state: it includes every flow with a valid date
+  on or before it. Opening balances and checkpoints are end-of-day balances
+  ([ADR-0014](adr/0014-end-of-day-positions-and-occurred-at.md)).
 - Computations run relative to an **as-of date**. Before it: state folded from facts and
   contract events. After it: projections.
 - Projections are derived, never stored as facts. They are keyed by as-of date,

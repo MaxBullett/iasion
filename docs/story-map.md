@@ -1,6 +1,7 @@
 # Story map
 
-Status: backbone, A1 tasks, first A2 tasks, R1 stories (draft, under review).
+Status: backbone, A1 tasks, first A2 tasks, R1 stories (reviewed in the R1 event
+storming).
 Tasks for A3 to A5 and stories beyond R1 follow.
 
 Left to right is the user's flow, not build order. Build order comes from release slices.
@@ -35,7 +36,7 @@ Onboarding follows [ADR-0007](adr/0007-onboarding-present-first.md).
 | A1.5 | Record flows | Income, spending, transfers between own accounts. | R1 |
 | A1.6 | Record checkpoints | Observed balances, compared against derived positions. | R1 |
 | A1.7 | Classify | Assign dimensions, confirm suggestions. | R1 (manual purpose only) |
-| A1.8 | Correct the past | Corrections are new facts with the correct valid time. | R1 (correct or void a flow) |
+| A1.8 | Correct the past | Corrections are new facts with the correct valid time. | R1 (correct or void a flow; correct household data) |
 | A1.9 | Register contracts | Each contract creates a contractual generator. | later |
 | A1.10 | Record valuations | | later |
 | A1.11 | Attach documents | | later |
@@ -48,6 +49,7 @@ Onboarding follows [ADR-0007](adr/0007-onboarding-present-first.md).
 |---|---|---|---|
 | A2.1 | View balance sheet | Positions and net worth as of a date, per member and household. | R1 |
 | A2.2 | View in and out | Inflows and outflows by purpose over a period, per member and household. | R1 |
+| A2.3 | View account activity | An account's transactions over a period, with its positions and checkpoints. | R1 |
 
 ### A3 to A5
 
@@ -74,11 +76,18 @@ Cross-cutting stories that belong to no activity are marked with activity `-`.
 
 Acceptance criteria:
 
-- Given no household exists, when I create a household with members "Alex" and
-  "Sam", then both are member parties inside the boundary.
+- Given no household exists and a request from the email named for first setup, when I
+  run first setup with member "Alex", then the household exists, Alex is a member
+  party inside the boundary, and that email is mapped to Alex (ADR-0024).
+- Given no household exists and a request from any other email, then first setup is
+  refused.
+- Given a household exists, when first setup is run again, then it is rejected: an
+  instance holds one household (ADR-0024).
 - Given a household exists, when I add a member, then the new member is inside the
   boundary and existing facts are unchanged.
 - Given a member, when I look at their party kind, then it is natural person.
+- Given first setup, then it asks for the household's time zone, prefilled from the
+  browser, and "today" is evaluated in that time zone from then on (ADR-0030).
 
 ### S-002: Register a counterparty
 
@@ -92,8 +101,12 @@ Acceptance criteria:
   as a party outside the boundary.
 - Given a household, when I register an aggregate party "Grocery merchants", then it can
   be used as a counterparty like any other party.
+- Given a registered party, then it has exactly one implicit account, owned by it
+  (ADR-0013).
 - Given a party name that already exists, when I register it again, then I am warned
   and can still proceed (two different parties may share a name).
+- Given party "ACME GmbH", when I register " acme gmbh", then I get the same warning:
+  names are stored trimmed and compared ignoring case (ADR-0029).
 
 ### S-003: Register an account
 
@@ -107,8 +120,17 @@ Acceptance criteria:
   ownership shares 50% and 50%, then the account exists with both owners.
 - Given ownership shares that do not sum to 100%, when I register the account, then it
   is rejected with a typed error naming the actual sum.
+- Given members Alex and Sam, when I register an account with ownership shares 1/3 and
+  2/3, then it is accepted: shares are exact fractions that sum to exactly 1
+  (ADR-0019).
 - Given member Alex, when I register a cash wallet with no institution and Alex as sole
   owner, then the account exists.
+- Given member Alex and party "ACME GmbH", when I register an account owned by both,
+  then it is rejected with a typed error: the owners of an account are either all
+  members or all outside the boundary (ADR-0023).
+- Given party "ACME GmbH" of kind legal entity, when I register an account with ACME
+  GmbH as its institution, then it is rejected with a typed error: an account's
+  institution is a party of kind institution (ADR-0027).
 - Given any account in R1, when I look at its units, then it holds only EUR.
 
 ### S-004: Record an opening balance
@@ -120,17 +142,22 @@ Acceptance criteria:
 Acceptance criteria:
 
 - Given an account without an opening balance, when I record an opening balance of
-  EUR 2,450.00 at 2026-10-01, then the derived position at 2026-10-01 is EUR 2,450.00.
+  EUR 2,450.00 for the end of 2026-09-30, then the derived position at 2026-09-30 is
+  EUR 2,450.00.
 - Given an account with an opening balance, when I record a second one, then it is
   rejected. (Changing it is a correction, see S-008.)
+- Given a new account opened on 2026-10-15, when I record its starting point as "new
+  account", then an opening balance of EUR 0.00 is recorded for the end of 2026-10-14
+  (ADR-0015).
 - Given an account without an opening balance, when I view the balance sheet, then the
   account is shown as having no starting point, not as zero.
 - Given an opening balance of EUR 2,450.00, then it is stored as a checkpoint and a
-  transaction between the account and the opening party, and the derived position
-  equals the sum of flows.
+  transaction with two flows, EUR +2,450.00 on the account and EUR -2,450.00 on the
+  opening party's implicit account, and the derived position equals the sum of flows.
 - Given an opening balance, when I view in and out for its period, then it does not
   appear as income.
-- Given a household is created, then exactly one opening party exists for it.
+- Given a household is created, then exactly one opening party exists for it, with one
+  implicit account.
 
 ### S-005: Record income
 
@@ -140,15 +167,30 @@ Acceptance criteria:
 
 Acceptance criteria:
 
-- Given an account with an opening balance at 2026-10-01 and employer party "ACME GmbH",
-  when I record a flow of EUR 3,800.00 from ACME GmbH into the account at 2026-10-28,
-  then the derived position at 2026-10-28 has increased by EUR 3,800.00.
-- Given any recorded flow, then its transaction nets to zero per unit and the
-  counterparty side is visible.
-- Given any recorded flow, then it carries a valid time (the date entered) and a
+- Given an account with an opening balance at 2026-09-30 and employer party "ACME GmbH",
+  when I record income of EUR 3,800.00 from ACME GmbH into the account at 2026-10-28,
+  then one transaction is stored with two flows, EUR +3,800.00 on the account and
+  EUR -3,800.00 on ACME GmbH's implicit account, and the derived position at
+  2026-10-28 has increased by EUR 3,800.00.
+- Given any recorded transaction, then its flows net to zero per unit and the flow on
+  the counterparty's account is visible.
+- Given flows that do not net to zero per unit, when the transaction is recorded, then
+  it is rejected with a typed error (ADR-0013).
+- Given any recorded transaction, then it carries a valid time (the date entered) and a
   recorded time (when it was saved).
-- Given an account with an opening balance at 2026-10-01, when I record a flow dated
-  2026-09-30, then it is rejected with a typed error. (Backfill is a later release.)
+- Given a transaction I record, when I add a note such as "October salary, includes
+  bonus", then the note is stored with the transaction. A note is optional.
+- Given an account with an opening balance at 2026-09-30, when I record a flow on it
+  dated 2026-09-30 or earlier, then it is rejected with a typed error. (The opening
+  balance is the end-of-day balance, ADR-0014. R1 has no backfill feature; moving the
+  opening balance to an earlier date is a correction, see S-008.)
+- Given an account without an opening balance, when I record a flow on it, then it is
+  rejected with a typed error (ADR-0015).
+- Given today is 2026-10-28 in the household's time zone, when I record a flow dated
+  2026-10-29, then it is rejected with a typed error: no fact is dated after today. An
+  aggregate flow whose interval ends after today is rejected the same way (ADR-0030).
+- Given an account, when I record a flow of EUR 0.00, then it is rejected with a typed
+  error (ADR-0030).
 
 ### S-006: Record spending
 
@@ -158,17 +200,30 @@ Acceptance criteria:
 
 Acceptance criteria:
 
-- Given an account and party "Corner Grocer", when I record a flow of EUR 54.20 to Corner Grocer at
-  2026-10-14, then the derived position decreases by EUR 54.20 from that date.
+- Given an account and party "Corner Grocer", when I record spending of EUR 54.20 at
+  Corner Grocer at 2026-10-14, then one transaction is stored with two flows,
+  EUR -54.20 on the account and EUR +54.20 on Corner Grocer's implicit account, and
+  the derived position decreases by EUR 54.20 from that date.
 - Given an account and aggregate party "Grocery merchants", when I record an aggregate
-  flow of EUR 640.00 for 2026-10-01 to 2026-10-31, then it is stored as one flow with
-  that valid-time interval.
+  flow of EUR 640.00 for 2026-10-01 to 2026-10-31, then it is stored as one
+  transaction with that valid-time interval and two flows, EUR -640.00 on the account
+  and EUR +640.00 on the implicit account of Grocery merchants.
 - Given that aggregate flow, when I view the derived position as of 2026-10-15, then
   it excludes the EUR 640.00 and is marked approximate.
+- Given that aggregate flow, when I view the derived position as of 2026-10-01, the
+  first day of the interval, then it is marked approximate as well (ADR-0014).
 - Given that aggregate flow, when I view the derived position as of 2026-10-31 or
   later, then it includes the full EUR 640.00 and is not marked approximate.
 - Given an interval whose end is before its start, when I record the flow, then it is
   rejected.
+- Given Alex's cash wallet with a derived position of EUR 20.00, when I record spending
+  of EUR 30.00 from it, then it is accepted and the derived position is EUR -10.00.
+  Negative positions are allowed on every account (ADR-0030).
+- Given that aggregate flow and an individual flow of EUR 54.20 at Corner Grocer on
+  the same account at 2026-10-14, then both count. R1 does not detect that the same
+  spending may be recorded twice; a checkpoint shows it as a difference. In R2,
+  imported detail for an account and interval replaces the aggregates on that account
+  whose interval lies within it (ADR-0009).
 
 ### S-007: Record a transfer between own accounts
 
@@ -179,15 +234,24 @@ Acceptance criteria:
 Acceptance criteria:
 
 - Given Alex's current account and Alex's cash wallet, when I record a cash withdrawal of
-  EUR 200.00 at 2026-10-10, then it is one transaction: current account minus
-  EUR 200.00, wallet plus EUR 200.00.
-- Given the same withdrawal with a EUR 2.00 fee, when I record it, then the fee is a
-  second flow in the same transaction, from the current account to the bank party.
-- Given a transfer between household accounts, when I view household in and out, then
-  only the fee appears; the transfer itself does not.
+  EUR 200.00 at 2026-10-10, then it is one transaction with two flows: EUR -200.00 on
+  the current account and EUR +200.00 on the wallet.
+- Given the same withdrawal with a EUR 2.00 fee, when I record it, then it is one
+  transaction with three flows: EUR -202.00 on the current account, EUR +200.00 on the
+  wallet and EUR +2.00 on Example Bank's implicit account.
+- Given that withdrawal with a fee, when I view household in and out, then only the
+  EUR 2.00 on Example Bank's account appears, as out; the flows on household accounts
+  do not.
 - Given a transfer of EUR 1,000.00 from Alex's account to the joint 50/50 account, when
   I view per member, then Alex shows EUR -500.00 and Sam EUR +500.00 under "between
   members", and neither shows it as in or out (ADR-0012).
+- Given a transfer into a household account without an opening balance, when I record
+  it, then it is rejected with a typed error (ADR-0015).
+- Given Alex's cash withdrawals in October 2026, when I record them as one aggregate
+  transfer of EUR 400.00 from Alex's current account to Alex's cash wallet for
+  2026-10-01 to 2026-10-31, then it is accepted, and the derived positions of both
+  accounts are approximate as of any date from 2026-10-01 up to, but not including,
+  2026-10-31 (ADR-0009, ADR-0014).
 
 ### S-008: Correct or void a flow
 
@@ -204,10 +268,28 @@ Acceptance criteria:
 - Given a cash withdrawal with a fee, when I correct the fee, then a new version of the
   whole transaction is stored and it still nets to zero; a version that does not net to
   zero is rejected.
-- Given a corrected flow, when I view figures as known on a date before the correction
-  was recorded, then the original amount is used.
+- Given a corrected flow, when figures are queried as known on a time before the
+  correction was recorded, then the original amount is used. The time is a UTC
+  instant, not a date. In R1 this is a query capability of the backend, covered by
+  tests, with no UI.
 - Given a correction, then no reversing flow appears in any view.
-- Given an opening balance, when I correct it, then it is versioned the same way.
+- Given Alex and Sam both open the same transaction, when Sam saves a correction after
+  Alex has saved one, then Sam's correction is rejected with a typed error naming the
+  current version, and Alex's stays current (ADR-0031).
+- Given a transaction with a note, when I change only the note, then a new version of
+  the transaction is stored; its flows and their purposes are unchanged.
+- Given an opening balance, when I correct its amount, then a new version of the
+  opening balance is stored, with its checkpoint and its transaction written together
+  (ADR-0015).
+- Given an opening balance at 2026-09-30, when I correct its date to an earlier date,
+  then it is accepted.
+- Given an opening balance at 2026-09-30 and a flow on the account at 2026-10-14, when
+  I correct the opening date to 2026-10-14 or later, then it is rejected with a typed
+  error naming the flow. The same holds for a checkpoint on the account.
+- Given an opening balance on an account with other flows or checkpoints, when I void
+  it, then it is rejected.
+- Given an opening balance on an account with no other facts, when I void it, then a
+  new opening balance can be recorded for that account.
 
 ### S-009: Define purposes
 
@@ -221,7 +303,12 @@ Acceptance criteria:
   flows.
 - Given a purpose with assigned flows, when I rename it, then the assignments keep
   pointing to it.
-- Given a purpose name that already exists, when I create it again, then it is rejected.
+- Given the purpose "Groceries", when I create "groceries " (other case, a trailing
+  space), then it is rejected: names are stored trimmed and compared ignoring case
+  (ADR-0029).
+- Given the purposes "Groceries" and "Rent", when I rename "Rent" to "groceries",
+  then it is rejected: that would be a merge, which is not R1 (ADR-0029).
+- Given the purpose "groceries", when I rename it to "Groceries", then it is renamed.
 
 ### S-010: Assign a purpose to a flow
 
@@ -231,12 +318,36 @@ Acceptance criteria:
 
 Acceptance criteria:
 
-- Given a flow and the purpose "Groceries", when I assign it, then the assignment has
-  provenance: assigned by me, confirmed.
-- Given a flow without a purpose, when I view in and out, then it appears under
-  "Unclassified", never dropped.
+- Given spending of EUR 54.20 at Corner Grocer and the purpose "Groceries", when I
+  assign it, then the assignment is on the flow of EUR +54.20 on Corner Grocer's
+  implicit account and has provenance: assigned by me, confirmed, with confidence
+  certain (ADR-0017).
+- Given a payment of EUR 80.00 from the joint current account with two flows on Corner
+  Grocer's implicit account, EUR +50.00 and EUR +30.00, when I assign "Groceries" to
+  the first and "Household goods" to the second, then each flow has its own purpose.
+- Given a cash withdrawal with a EUR 2.00 fee (S-007), when I assign the purpose "Bank
+  fees", then it is on the flow of EUR +2.00 on Example Bank's implicit account.
+- Given the aggregate flow of EUR 640.00 (S-006), when I assign "Groceries", then the
+  assignment is on the flow on the implicit account of Grocery merchants.
+- Given a flow on a household account, a flow on a system party's account, or a flow
+  of a transaction that has no flow on a household account, when I assign a purpose
+  to it, then it is rejected with a typed error (ADR-0016).
+- Given a flow that can carry a purpose and has none, when I view in and out, then it
+  appears under "Unclassified", never dropped.
 - Given a flow with a purpose, when I change the purpose, then the previous assignment
   is kept with its recorded time.
+- Given a flow with a purpose, when I correct its amount (S-008), then the flow keeps
+  its purpose.
+- Given a flow with a purpose, when a correction splits it in two, then one part keeps
+  the purpose and the other appears under "Unclassified".
+- Given a flow with a purpose, when a correction removes the flow or the transaction
+  is voided, then the assignment is no longer current and is still stored.
+- Given a flow with a purpose, when a correction moves it to a household account, then
+  I am warned before saving, and afterwards the assignment is no longer current and
+  is still stored (ADR-0017).
+- Given a flow with a purpose, when I remove the purpose, then the flow appears under
+  "Unclassified" and the previous assignment is kept with its recorded time
+  (ADR-0017).
 
 ### S-011: Record a checkpoint
 
@@ -253,8 +364,30 @@ Acceptance criteria:
   difference shown updates accordingly.
 - Given a checkpoint dated before the account's opening balance, when I record it, then
   it is rejected.
-- Given a checkpoint dated inside an aggregate flow's interval on that account, then the
-  difference is shown as approximate.
+- Given an account without an opening balance, when I record a checkpoint, then it is
+  rejected (ADR-0015).
+- Given a checkpoint dated on or after the first day and before the last day of an
+  aggregate flow's interval on that account, then the difference is shown as
+  approximate.
+- Given an account with several checkpoints, when I view the account's checkpoints,
+  then each is listed with its date, its amount and its current difference.
+- Given a checkpoint with a difference followed by a later checkpoint without one,
+  then the list still shows the earlier difference at its own date.
+- Given a checkpoint of EUR 260.00 at 2026-10-31 against a derived position of
+  EUR 310.00, when I correct its amount to EUR 310.00, then its difference is shown as
+  EUR 0.00 and the earlier version is still stored (ADR-0010).
+- Given a checkpoint, when I correct its date to a date before the account's opening
+  balance, to the date of the opening balance, or to the date of another checkpoint on
+  the account, then it is rejected with a typed error (ADR-0030).
+- Given a checkpoint at 2026-10-31, when I record another checkpoint for the same
+  account at 2026-10-31, then it is rejected; the first is corrected instead
+  (ADR-0030).
+- Given an opening balance at 2026-09-30, when I record a checkpoint at 2026-09-30,
+  then it is rejected: the opening balance is that date's checkpoint (ADR-0030).
+- Given today is 2026-10-31, when I record a checkpoint dated 2026-11-01, then it is
+  rejected (ADR-0030).
+- Given a checkpoint, when I void it, then it is no longer listed and no view uses it,
+  and its versions are still stored.
 
 ### S-012: View the balance sheet
 
@@ -270,12 +403,15 @@ Acceptance criteria:
   the balance sheet per member, then each member is attributed EUR 500.00.
 - Given all accounts, then household net worth equals the sum of all positions of
   household accounts, and equals the sum of the per-member figures.
-- Given an account whose latest checkpoint has a difference, then the balance sheet
-  shows that the account has an unexplained difference.
+- Given an account whose latest checkpoint on or before the as-of date has a
+  difference, then the balance sheet shows that the account has an unexplained
+  difference. Later checkpoints are not considered.
 - Given an as-of date before an account's opening balance, then that account is shown
-  as unknown, not as zero.
-- Given an as-of date inside an aggregate flow's interval, then the affected account
-  and the totals it feeds into are marked approximate.
+  as unknown, not as zero, and net worth is the total of the other accounts, flagged
+  partial and naming that account as not tracked (ADR-0021).
+- Given an as-of date on or after the first day and before the last day of an
+  aggregate flow's interval, then the affected account and the totals it feeds into
+  are marked approximate.
 
 ### S-013: View in and out
 
@@ -285,26 +421,61 @@ Acceptance criteria:
 
 Acceptance criteria:
 
-- Given flows in October 2026, when I view in and out for October 2026, then inflows and
-  outflows are grouped by purpose, with flows without a purpose under "Unclassified".
-- Given transfers between household accounts, then they are excluded from the household
-  view.
-- Given flows against a system party (e.g. opening balances), then they are excluded
-  from every in and out view.
-- Given a flow from a joint account with shares 50/50, when I view per member, then each
-  member is attributed half.
-- Given a period that starts before an account's opening balance, then the view states
-  that the figures for that account are partial.
+- Given flows in October 2026, when I view in and out for October 2026, then in and out
+  are netted per purpose, purposes with net in are listed as income and purposes with
+  net out as spending, and flows without a purpose are shown under "Unclassified" as
+  in and out separately (ADR-0022).
+- Given spending of EUR 54.20 at Corner Grocer and a refund of EUR 20.00 from Corner
+  Grocer in the same period, both with the purpose "Groceries", then Groceries shows
+  spending of EUR 34.20 (ADR-0022).
+- Given a purpose whose in and out net to exactly zero in the period, then it is
+  listed in a group of its own, "Netted to zero", below income and spending, with its
+  gross in and out visible on expansion. It never disappears.
+- Given a transaction whose flows are all on household accounts (a transfer), then it
+  adds nothing to the household view.
+- Given a transaction with no flow on a household account, then it appears in no in
+  and out view (ADR-0013).
+- Given flows on a system party's account (e.g. the opening party's, for opening
+  balances), then they are neither in nor out. They appear on that party's line of
+  the reconciliation, "Opening balances" (ADR-0020).
+- Given spending of EUR 54.20 from the joint account with shares 50/50, when I view per
+  member, then each member shows out EUR 27.10.
+- Given spending of EUR 54.21 from that account, then one member shows out EUR 27.11
+  and the other EUR 27.10, and between members is zero for both (ADR-0019).
+- Given income of EUR 3,800.00 from ACME GmbH, of which EUR 3,000.00 arrive on Alex's
+  current account and EUR 800.00 on the joint account, then in is EUR 3,400.00 for
+  Alex and EUR 400.00 for Sam, and between members is zero (ADR-0018).
+- Given a cash withdrawal of EUR 200.00 from the joint account into Alex's cash wallet
+  with a EUR 2.00 fee, then out is EUR 1.00 for each member, and between members is
+  EUR +100.00 for Alex and EUR -100.00 for Sam (ADR-0018).
+- Given income of EUR 3,800.00 from ACME GmbH from which Example Bank withholds a fee
+  of EUR 5.00, so that EUR 3,795.00 arrive on Alex's current account, then Alex shows
+  in EUR 3,800.00 and out EUR 5.00 (ADR-0018, no household flow of the opposite
+  sign).
+- Given a period that starts on or before the date of an account's opening balance,
+  then the view is flagged partial once, with a note naming the account as not
+  tracked before that date. Purpose lines are not flagged one by one (ADR-0021).
 - Given an aggregate flow for 2026-10-01 to 2026-10-31, when I view October 2026 or any
   period containing it, then it counts in full.
 - Given the same aggregate flow, when I view 2026-10-15 to 2026-11-15, then it is
-  excluded, the figure is marked partial, and the aggregate is named.
-- Given the October example in ADR-0012, when I view per member, then Alex shows opening
-  2,000, in 3,000, out 300, between members -500, closing 4,200, and Sam shows opening
-  2,000, in 2,500, out 300, between members +500, closing 4,700.
-- Given any period, then each member reconciles (opening + in - out + between members =
-  closing), between-members lines sum to zero across the household, and members' in
-  and out sum to the household's in and out.
+  excluded, and the line of its purpose ("Unclassified" if it has none) and the
+  totals are flagged partial, naming the aggregate (ADR-0021).
+- Given the October example in ADR-0012 with opening balances at 2026-09-30, when I view
+  per member, then Alex shows opening 2,000, in 3,000, out 300, between members -500,
+  closing 4,200, and Sam shows opening 2,000, in 2,500, out 300, between members
+  +500, closing 4,700.
+- Given Sam's cash wallet with an opening balance of EUR 80.00 at 2026-10-10 and all
+  other accounts with opening balances at 2026-09-30, when I view October 2026, then
+  the opening figure leaves the wallet out and names it as not tracked, the line
+  "Opening balances" shows EUR 80.00 for Sam and for the household, and the view
+  reconciles (ADR-0020).
+- Given any period, then each member reconciles (opening + opening balances + in - out
+  + between members = closing), between-members lines sum to zero across the
+  household, and members' in and out sum to the household's in and out, all in whole
+  cents (ADR-0019).
+- Given the in and out view, when I expand a line (a purpose, or Unclassified in or
+  out), then its flows are listed with their transactions, and I can open each
+  transaction (S-016).
 
 ### S-014: Sign in
 
@@ -314,8 +485,91 @@ Acceptance criteria:
 
 Acceptance criteria:
 
-- Given a request with a valid Cloudflare Access JWT for an email mapped to a member,
-  then the request is served in that member's context.
+- Given a request with a valid Cloudflare Access JWT for an email that is a login
+  identity of a member, then the request is served in that member's context.
 - Given a request without a valid Access JWT, then it is rejected, even if an email
   header is present.
 - Given a valid Access JWT for an email not mapped to any member, then access is denied.
+- Given member Sam without a login identity, when I map an email to Sam as a login
+  identity, then requests with a valid Access JWT for that email are served in Sam's
+  context (ADR-0024).
+- Given a login identity that is mapped to a member, when I map it to another member,
+  then it is rejected: a login identity belongs to one member. A member may have
+  several login identities, or none.
+- Given a household with two login identities, when I remove one, then requests with a
+  valid Access JWT for that email are denied afterwards.
+- Given a household with exactly one login identity, when I remove it, then it is
+  rejected with a typed error: a household always has at least one login identity
+  (ADR-0026).
+- Given a household exists, then the email named for first setup has no role: a
+  request for it is served only if that email is a login identity of a member
+  (ADR-0026).
+- Given a request served in Alex's context, when it records, corrects or voids a fact,
+  then the new version records Alex as the member who recorded it, next to its
+  recorded time (ADR-0028).
+- Given a request that is denied, then nothing about it is stored with the household's
+  data. It appears in operational logs only (ADR-0028).
+
+### S-015: Correct household data
+
+- Activity: A1. Task: A1.8 Correct the past. Release: R1.
+- As a household member, I want to fix a party, an account, ownership shares or a
+  purpose I entered wrongly, so that mistakes there do not stay in the figures either.
+
+Acceptance criteria:
+
+- Given party "Corner Grocer", when I correct its name, then views use the new name and
+  the earlier version is still stored with its recorded time.
+- Given the joint current account with shares 1/2 and 1/2, when I correct them to 3/5
+  and 2/5, then every member view uses 3/5 and 2/5 for all dates, including dates
+  before the correction was recorded.
+- Given that correction, when I view figures as known on a time before it was recorded,
+  then they use 1/2 and 1/2.
+- Given corrected shares that do not sum to 1, then the correction is rejected with a
+  typed error naming the actual sum.
+- Given a party of kind legal entity, when I correct its kind to system, then it is
+  rejected. The kind of a system party cannot be corrected either.
+- Given member Sam, when I try to make Sam a party outside the boundary, or party
+  "ACME GmbH" a member, then it is rejected.
+- Given a purpose with a current assignment, when I void it, then it is rejected with a
+  typed error naming the facts that refer to it.
+- Given a purpose that no current fact refers to, when I void it, then it can no longer
+  be assigned, and its versions are still stored.
+- Given an account with an opening balance, when I void the account, then it is
+  rejected. Given an account that no current fact refers to, then it is voided.
+- Given a party with a flow on its implicit account, when I void the party, then it is
+  rejected. Given a party that no current fact refers to, then it is voided together
+  with its implicit account.
+- Given a correction of a party, an account or a purpose that names a version which is
+  no longer current, then it is rejected with a typed error naming the current
+  version (ADR-0031).
+
+### S-016: View an account's transactions
+
+- Activity: A2. Task: A2.3 View account activity. Release: R1.
+- As a household member, I want to see what has been recorded on an account over a
+  period, so that I can find a transaction to correct or classify, and explain a
+  checkpoint difference.
+
+Acceptance criteria:
+
+- Given the joint current account with an opening balance at 2026-09-30, when I view
+  its transactions for October 2026, then every current transaction with a flow on the
+  account in the period is listed by valid date, with its counterparty, its amount on
+  the account, the purposes of its flows and its note, and each date shows the derived
+  position at the end of that day.
+- Given a checkpoint on the account in the period, then it is listed at its date with
+  its amount and its current difference.
+- Given the aggregate flow of EUR 640.00 for 2026-10-01 to 2026-10-31 (S-006), then it
+  is listed at 2026-10-31 showing its interval, and the end-of-day positions from
+  2026-10-01 up to, but not including, 2026-10-31 are marked approximate (ADR-0009,
+  ADR-0014).
+- Given a period that contains the opening balance, then the opening balance is listed
+  at its date, and the dates before it are shown as not tracked (ADR-0020).
+- Given a corrected transaction, then it is listed in its current version; a voided
+  transaction is not listed.
+- Given a listed transaction, when I open it, then I can correct or void it (S-008) and
+  assign purposes to its flows (S-010).
+- Given several transactions on one date, then those with an occurred-at are ordered by
+  it. Positions are shown only at the end of each day, so the order within a date
+  changes no figure (ADR-0014).

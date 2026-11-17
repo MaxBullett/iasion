@@ -2,7 +2,7 @@
 
 - Status: accepted (2026-11-15)
 - Date: 2026-09-27
-- Refined by: ADR-0009, ADR-0010, ADR-0011. Open details: OQ-010 to OQ-016.
+- Refined by: ADR-0009, ADR-0010, ADR-0011, ADR-0021. Open details: OQ-010 to OQ-016.
 
 ## Context
 
