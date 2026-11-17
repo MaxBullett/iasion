@@ -41,3 +41,4 @@ supersedes the old one and update the old one's status.
 | [0031](0031-corrections-name-the-version-they-replace.md) | A correction names the version it replaces | Accepted |
 | [0032](0032-r1-bounded-contexts.md) | R1 bounded contexts: Household, Access, Ledger, Classification and Views | Accepted |
 | [0033](0033-persistence-postgresql-versioned-facts.md) | Persistence: PostgreSQL only, a schema per context, versioned facts in append-only tables | Accepted |
+| [0034](0034-workspace-layout.md) | Workspace layout: one crate per context, persistence behind a feature | Accepted |
