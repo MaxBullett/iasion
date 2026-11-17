@@ -33,3 +33,4 @@ supersedes the old one and update the old one's status.
 | [0023](0023-household-accounts-owned-by-members.md) | In R1 a household account is owned by members only, and the household is not a party | Accepted |
 | [0024](0024-first-setup-and-login-identities.md) | First setup by a configured email, and login identities map to members | Accepted |
 | [0025](0025-corrections-to-household-data.md) | Parties, accounts, ownership shares and purposes are corrected as versions | Accepted |
+| [0026](0026-last-login-identity-and-recovery.md) | The last login identity cannot be removed, and recovery is an operator task | Accepted |

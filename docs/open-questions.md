@@ -683,7 +683,12 @@ Login identities are managed in the app (ADR-0024). Open:
 - Is a login identity versioned like other facts, and is a removed one kept in
   history?
 
-Status: open
+Status: resolved, recorded in
+[ADR-0026](adr/0026-last-login-identity-and-recovery.md): removing the
+last login identity is rejected; the email named for first setup has no role after
+setup; recovery from a lost login identity is an operator task, described in the
+deployment docs; an admin command comes later; login identities are versioned like
+other household data.
 
 ## OQ-041: Ownership shares that change over time
 

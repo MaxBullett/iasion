@@ -437,6 +437,14 @@ Acceptance criteria:
 - Given a login identity that is mapped to a member, when I map it to another member,
   then it is rejected: a login identity belongs to one member. A member may have
   several login identities, or none.
+- Given a household with two login identities, when I remove one, then requests with a
+  valid Access JWT for that email are denied afterwards.
+- Given a household with exactly one login identity, when I remove it, then it is
+  rejected with a typed error: a household always has at least one login identity
+  (ADR-0026).
+- Given a household exists, then the email named for first setup has no role: a
+  request for it is served only if that email is a login identity of a member
+  (ADR-0026).
 
 ### S-015: Correct household data
 

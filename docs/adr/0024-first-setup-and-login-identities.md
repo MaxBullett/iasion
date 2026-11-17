@@ -2,6 +2,7 @@
 
 - Status: accepted
 - Date: 2026-11-15
+- Refined by: ADR-0026
 - Resolves: OQ-021, except what the acting member is recorded on and whether sign-ins
   are recorded
 

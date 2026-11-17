@@ -64,7 +64,7 @@ Kernel primitives are defined in detail in `docs/primitives.md`.
   the set of members (ADR-0023).
 - **Login identity:** what a signed-in request is known by, in R1 the email verified by
   Cloudflare Access. It maps to exactly one member; a member may have several, or none
-  (ADR-0024).
+  (ADR-0024). A household always has at least one (ADR-0026).
 - **Pool:** a dimension grouping positions and flows for a purpose, with an owner.
 - **Budget:** a constraint on a pool's flows.
 - **Between members:** in a member view, what remains of the change in a member's
