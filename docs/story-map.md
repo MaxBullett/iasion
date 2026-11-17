@@ -101,6 +101,8 @@ Acceptance criteria:
   (ADR-0013).
 - Given a party name that already exists, when I register it again, then I am warned
   and can still proceed (two different parties may share a name).
+- Given party "ACME GmbH", when I register " acme gmbh", then I get the same warning:
+  names are stored trimmed and compared ignoring case (ADR-0029).
 
 ### S-003: Register an account
 
@@ -270,7 +272,12 @@ Acceptance criteria:
   flows.
 - Given a purpose with assigned flows, when I rename it, then the assignments keep
   pointing to it.
-- Given a purpose name that already exists, when I create it again, then it is rejected.
+- Given the purpose "Groceries", when I create "groceries " (other case, a trailing
+  space), then it is rejected: names are stored trimmed and compared ignoring case
+  (ADR-0029).
+- Given the purposes "Groceries" and "Rent", when I rename "Rent" to "groceries",
+  then it is rejected: that would be a merge, which is not R1 (ADR-0029).
+- Given the purpose "groceries", when I rename it to "Groceries", then it is renamed.
 
 ### S-010: Assign a purpose to a flow
 

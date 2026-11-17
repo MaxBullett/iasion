@@ -65,6 +65,9 @@ to avoid guessing.
 - Every version records the member who recorded it, next to its recorded time.
   Sign-ins and denied requests are not facts: they are not stored, and appear in
   operational logs only (ADR-0028).
+- Names are stored trimmed. Two names are the same if they are equal ignoring case
+  (Unicode default case folding, independent of locale). Purpose names are unique;
+  for parties a name that already exists only warns (ADR-0029).
 - Queries use current knowledge (latest non-void version) by default. "As known on"
   queries select versions by recorded time.
 

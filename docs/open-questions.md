@@ -299,7 +299,10 @@ with an effective date are parked as OQ-041); a party's kind cannot change to or
 system, and a party cannot cross the boundary; voiding only while no current fact
 refers to it. Still open:
 
-- How purpose names are compared, and whether renaming to an existing name fails.
+- How purpose names are compared, and whether renaming to an existing name fails:
+  recorded in [ADR-0029](adr/0029-comparing-names.md). Names are
+  stored trimmed and compared ignoring case; renaming a purpose to the name of
+  another is rejected.
 - How an account, a member or a purpose that is in use is retired (closing an
   account, a member leaving, a purpose no longer offered): confirmed not R1, parked
   as OQ-042.

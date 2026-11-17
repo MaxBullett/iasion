@@ -3,6 +3,7 @@
 - Status: accepted
 - Date: 2026-11-15
 - Refines: ADR-0010, ADR-0015
+- Refined by: ADR-0029
 - Resolves: OQ-023, except how purpose names are compared and how something in use is
   retired
 
