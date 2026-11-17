@@ -434,7 +434,11 @@ No spec states a rule for:
   ADR-0015 already rejects moving an opening balance onto the date of an existing
   checkpoint.
 
-Status: open
+Status: resolved in review, recorded in
+[ADR-0030](adr/0030-limits-on-recorded-values.md): no fact is
+dated after today, in the household's time zone set at first setup; a flow of zero is
+rejected except in an opening balance's transaction; negative positions are allowed;
+one checkpoint per account and date, and none on the date of the opening balance.
 
 ## OQ-029: Flow identity across transaction versions, and purpose assignments
 

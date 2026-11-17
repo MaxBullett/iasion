@@ -41,6 +41,8 @@ to avoid guessing.
   the valid date (ADR-0014).
 - Recorded time uses UTC timestamps.
 - Domain code never reads the system clock. The as-of date and "now" are inputs.
+  "Today" is the current date in the household's time zone, computed outside the
+  domain and passed in (ADR-0030).
 
 ### Aggregates and invariants
 

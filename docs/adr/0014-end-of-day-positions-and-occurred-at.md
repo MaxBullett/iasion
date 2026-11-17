@@ -3,6 +3,7 @@
 - Status: accepted
 - Date: 2026-11-15
 - Refines: ADR-0009 (decisions 3 and 5), ADR-0011
+- Refined by: ADR-0030
 - Resolves: OQ-026. Tightens the resolution of OQ-019.
 
 ## Context

@@ -115,6 +115,8 @@ Kernel primitives are defined in detail in `docs/primitives.md`.
 - **Recorded time:** when the system learned about it.
 - **As known on:** a query that uses the versions that were current at a given recorded
   time (a UTC instant), instead of current knowledge (ADR-0010).
+- **Today:** the current civil date in the household's time zone, an IANA time zone name
+  set at first setup. No fact is dated after it (ADR-0030).
 - **As-of date:** the date separating reconciled facts from projections in a computation.
 - **Version:** one recorded state of a fact. A fact has a stable ID and one or more
   versions, each with its recorded time (ADR-0010) and the member who recorded it

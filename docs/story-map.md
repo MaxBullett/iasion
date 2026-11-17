@@ -84,6 +84,8 @@ Acceptance criteria:
 - Given a household exists, when I add a member, then the new member is inside the
   boundary and existing facts are unchanged.
 - Given a member, when I look at their party kind, then it is natural person.
+- Given first setup, then it asks for the household's time zone, prefilled from the
+  browser, and "today" is evaluated in that time zone from then on (ADR-0030).
 
 ### S-002: Register a counterparty
 
@@ -182,6 +184,11 @@ Acceptance criteria:
   opening balance to an earlier date is a correction, see S-008.)
 - Given an account without an opening balance, when I record a flow on it, then it is
   rejected with a typed error (ADR-0015).
+- Given today is 2026-10-28 in the household's time zone, when I record a flow dated
+  2026-10-29, then it is rejected with a typed error: no fact is dated after today. An
+  aggregate flow whose interval ends after today is rejected the same way (ADR-0030).
+- Given an account, when I record a flow of EUR 0.00, then it is rejected with a typed
+  error (ADR-0030).
 
 ### S-006: Record spending
 
@@ -207,6 +214,9 @@ Acceptance criteria:
   later, then it includes the full EUR 640.00 and is not marked approximate.
 - Given an interval whose end is before its start, when I record the flow, then it is
   rejected.
+- Given Alex's cash wallet with a derived position of EUR 20.00, when I record spending
+  of EUR 30.00 from it, then it is accepted and the derived position is EUR -10.00.
+  Negative positions are allowed on every account (ADR-0030).
 - Given that aggregate flow and an individual flow of EUR 54.20 at Corner Grocer on
   the same account at 2026-10-14, then both count. R1 does not detect that the same
   spending may be recorded twice; a checkpoint shows it as a difference. In R2,
@@ -362,7 +372,15 @@ Acceptance criteria:
   EUR 310.00, when I correct its amount to EUR 310.00, then its difference is shown as
   EUR 0.00 and the earlier version is still stored (ADR-0010).
 - Given a checkpoint, when I correct its date to a date before the account's opening
-  balance, then it is rejected with a typed error.
+  balance, to the date of the opening balance, or to the date of another checkpoint on
+  the account, then it is rejected with a typed error (ADR-0030).
+- Given a checkpoint at 2026-10-31, when I record another checkpoint for the same
+  account at 2026-10-31, then it is rejected; the first is corrected instead
+  (ADR-0030).
+- Given an opening balance at 2026-09-30, when I record a checkpoint at 2026-09-30,
+  then it is rejected: the opening balance is that date's checkpoint (ADR-0030).
+- Given today is 2026-10-31, when I record a checkpoint dated 2026-11-01, then it is
+  rejected (ADR-0030).
 - Given a checkpoint, when I void it, then it is no longer listed and no view uses it,
   and its versions are still stored.
 
