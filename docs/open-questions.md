@@ -526,7 +526,10 @@ transaction carries an optional note, versioned with it (S-005, S-008).
 Input: S-011 now lists an account's checkpoints, a first piece of an account detail
 view.
 
-Status: open
+Status: resolved in review: new story S-016 lists an account's transactions over a
+period, with end-of-day positions and checkpoints, as the entry point for correcting
+and classifying. Lines of the in and out view expand to their flows (S-013). No search
+in R1.
 
 ## OQ-033: Figure states and other open points in the R1 views
 

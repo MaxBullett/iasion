@@ -48,6 +48,7 @@ Onboarding follows [ADR-0007](adr/0007-onboarding-present-first.md).
 |---|---|---|---|
 | A2.1 | View balance sheet | Positions and net worth as of a date, per member and household. | R1 |
 | A2.2 | View in and out | Inflows and outflows by purpose over a period, per member and household. | R1 |
+| A2.3 | View account activity | An account's transactions over a period, with its positions and checkpoints. | R1 |
 
 ### A3 to A5
 
@@ -471,6 +472,9 @@ Acceptance criteria:
   + between members = closing), between-members lines sum to zero across the
   household, and members' in and out sum to the household's in and out, all in whole
   cents (ADR-0019).
+- Given the in and out view, when I expand a line (a purpose, or Unclassified in or
+  out), then its flows are listed with their transactions, and I can open each
+  transaction (S-016).
 
 ### S-014: Sign in
 
@@ -538,3 +542,33 @@ Acceptance criteria:
 - Given a correction of a party, an account or a purpose that names a version which is
   no longer current, then it is rejected with a typed error naming the current
   version (ADR-0031).
+
+### S-016: View an account's transactions
+
+- Activity: A2. Task: A2.3 View account activity. Release: R1.
+- As a household member, I want to see what has been recorded on an account over a
+  period, so that I can find a transaction to correct or classify, and explain a
+  checkpoint difference.
+
+Acceptance criteria:
+
+- Given the joint current account with an opening balance at 2026-09-30, when I view
+  its transactions for October 2026, then every current transaction with a flow on the
+  account in the period is listed by valid date, with its counterparty, its amount on
+  the account, the purposes of its flows and its note, and each date shows the derived
+  position at the end of that day.
+- Given a checkpoint on the account in the period, then it is listed at its date with
+  its amount and its current difference.
+- Given the aggregate flow of EUR 640.00 for 2026-10-01 to 2026-10-31 (S-006), then it
+  is listed at 2026-10-31 showing its interval, and the end-of-day positions from
+  2026-10-01 up to, but not including, 2026-10-31 are marked approximate (ADR-0009,
+  ADR-0014).
+- Given a period that contains the opening balance, then the opening balance is listed
+  at its date, and the dates before it are shown as not tracked (ADR-0020).
+- Given a corrected transaction, then it is listed in its current version; a voided
+  transaction is not listed.
+- Given a listed transaction, when I open it, then I can correct or void it (S-008) and
+  assign purposes to its flows (S-010).
+- Given several transactions on one date, then those with an occurred-at are ordered by
+  it. Positions are shown only at the end of each day, so the order within a date
+  changes no figure (ADR-0014).
