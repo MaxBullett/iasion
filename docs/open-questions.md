@@ -488,7 +488,11 @@ Two members may correct or void the same fact, or record an opening balance for 
 same account, at the same time. Must a correction name the version it replaces and be
 rejected when that version is no longer current? Otherwise the last one silently wins.
 
-Status: open
+Status: resolved in review, recorded in
+[ADR-0031](adr/0031-corrections-name-the-version-they-replace.md):
+every correction or void names the version it replaces and is rejected if that
+version is no longer current; new facts are checked against the current state in one
+step.
 
 ## OQ-031: "As known on" in R1
 

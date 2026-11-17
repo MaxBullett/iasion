@@ -271,6 +271,9 @@ Acceptance criteria:
   instant, not a date. In R1 this is a query capability of the backend, covered by
   tests, with no UI.
 - Given a correction, then no reversing flow appears in any view.
+- Given Alex and Sam both open the same transaction, when Sam saves a correction after
+  Alex has saved one, then Sam's correction is rejected with a typed error naming the
+  current version, and Alex's stays current (ADR-0031).
 - Given a transaction with a note, when I change only the note, then a new version of
   the transaction is stored; its flows and their purposes are unchanged.
 - Given an opening balance, when I correct its amount, then a new version of the
@@ -532,3 +535,6 @@ Acceptance criteria:
 - Given a party with a flow on its implicit account, when I void the party, then it is
   rejected. Given a party that no current fact refers to, then it is voided together
   with its implicit account.
+- Given a correction of a party, an account or a purpose that names a version which is
+  no longer current, then it is rejected with a typed error naming the current
+  version (ADR-0031).

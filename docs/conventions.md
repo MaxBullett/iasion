@@ -70,6 +70,9 @@ to avoid guessing.
 - Names are stored trimmed. Two names are the same if they are equal ignoring case
   (Unicode default case folding, independent of locale). Purpose names are unique;
   for parties a name that already exists only warns (ADR-0029).
+- Every correction or void names the version it replaces and is rejected if that
+  version is no longer current. Recording something new checks invariants against the
+  current state in one step (ADR-0031).
 - Queries use current knowledge (latest non-void version) by default. "As known on"
   queries select versions by recorded time.
 

@@ -38,3 +38,4 @@ supersedes the old one and update the old one's status.
 | [0028](0028-fact-versions-record-the-member.md) | Every fact version records the member who recorded it; sign-ins are not facts | Accepted |
 | [0029](0029-comparing-names.md) | Names are stored trimmed and compared ignoring case | Accepted |
 | [0030](0030-limits-on-recorded-values.md) | Limits on recorded values: no future dates, no zero flows, one checkpoint per date | Accepted |
+| [0031](0031-corrections-name-the-version-they-replace.md) | A correction names the version it replaces | Accepted |
