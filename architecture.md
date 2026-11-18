@@ -138,6 +138,7 @@ live in Classification.
 | HTTP framework | axum, only in `api` and `server` | [ADR-0035](docs/adr/0035-axum-web-framework.md) |
 | API contract | OpenAPI 3.1 from the code (utoipa), committed; typed client (openapi-typescript, openapi-fetch) | [ADR-0036](docs/adr/0036-api-contract.md) |
 | Authentication | Cloudflare Access JWT verified in `api`, email mapped to a member | [ADR-0037](docs/adr/0037-authentication.md) |
+| Dev environment | Docker Compose for services, a devcontainer for the toolchain, `cargo xtask`, pnpm | [ADR-0038](docs/adr/0038-dev-environment.md) |
 | Frontend | Vue 3, TypeScript | [ADR-0003](docs/adr/0003-vue-frontend.md) |
 | Frontend delivery | Responsive web app, PWA, no native or WASM | [ADR-0008](docs/adr/0008-responsive-web-no-native.md) |
 | Plugin mechanism | Compiled-in crates | [ADR-0005](docs/adr/0005-plugins-as-compiled-crates.md) |
