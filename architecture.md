@@ -140,6 +140,7 @@ live in Classification.
 | Authentication | Cloudflare Access JWT verified in `api`, email mapped to a member | [ADR-0037](docs/adr/0037-authentication.md) |
 | Dev environment | Docker Compose for services, a devcontainer for the toolchain, `cargo xtask`, pnpm | [ADR-0038](docs/adr/0038-dev-environment.md) |
 | CI and secret scanning | GitHub Actions on GitHub-hosted runners, Betterleaks, local private-terms hooks, cargo-deny | [ADR-0039](docs/adr/0039-ci-and-secret-scanning.md) |
+| Deployment | One image; Podman on a dedicated VM; pulled updates with rollback; Cloudflare Tunnel | [ADR-0040](docs/adr/0040-deployment.md) |
 | Frontend | Vue 3, TypeScript | [ADR-0003](docs/adr/0003-vue-frontend.md) |
 | Frontend delivery | Responsive web app, PWA, no native or WASM | [ADR-0008](docs/adr/0008-responsive-web-no-native.md) |
 | Plugin mechanism | Compiled-in crates | [ADR-0005](docs/adr/0005-plugins-as-compiled-crates.md) |
