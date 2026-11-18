@@ -90,8 +90,9 @@ and history, must be safe to publish.
 
 Planned for R1 (see `docs/releases/r1.md`, enablers): secret scanning in a pre-commit
 hook and in CI, plus a local, gitignored denylist of private terms (`.private-terms`)
-checked before each commit. Until these exist, the rules above are enforced by review
-only. Do not claim a change passed these checks unless they ran.
+checked before each commit, decided in `docs/adr/0039-ci-and-secret-scanning.md`. Until
+these exist, the rules above are enforced by review only. Do not claim a change passed
+these checks unless they ran.
 
 ## Git and commits
 
