@@ -45,3 +45,4 @@ supersedes the old one and update the old one's status.
 | [0035](0035-axum-web-framework.md) | axum is the web framework, used only in `api` and `server` | Accepted |
 | [0036](0036-api-contract.md) | API contract: OpenAPI generated from the code, a typed client, both committed | Accepted |
 | [0037](0037-authentication.md) | Authentication: verify the Cloudflare Access JWT, map its email to a member | Accepted |
+| [0038](0038-dev-environment.md) | Dev environment: Docker Compose and a devcontainer, cargo xtask as the entry point | Accepted |
