@@ -42,3 +42,4 @@ supersedes the old one and update the old one's status.
 | [0032](0032-r1-bounded-contexts.md) | R1 bounded contexts: Household, Access, Ledger, Classification and Views | Accepted |
 | [0033](0033-persistence-postgresql-versioned-facts.md) | Persistence: PostgreSQL only, a schema per context, versioned facts in append-only tables | Accepted |
 | [0034](0034-workspace-layout.md) | Workspace layout: one crate per context, persistence behind a feature | Accepted |
+| [0035](0035-axum-web-framework.md) | axum is the web framework, used only in `api` and `server` | Accepted |

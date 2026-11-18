@@ -135,6 +135,7 @@ live in Classification.
 | Concern | Choice | Decision |
 |---|---|---|
 | Backend language | Rust | [ADR-0002](docs/adr/0002-rust-backend.md) |
+| HTTP framework | axum, only in `api` and `server` | [ADR-0035](docs/adr/0035-axum-web-framework.md) |
 | Frontend | Vue 3, TypeScript | [ADR-0003](docs/adr/0003-vue-frontend.md) |
 | Frontend delivery | Responsive web app, PWA, no native or WASM | [ADR-0008](docs/adr/0008-responsive-web-no-native.md) |
 | Plugin mechanism | Compiled-in crates | [ADR-0005](docs/adr/0005-plugins-as-compiled-crates.md) |
