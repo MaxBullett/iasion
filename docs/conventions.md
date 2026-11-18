@@ -113,7 +113,8 @@ Tool choices marked _open_ are settled when the frontend is scaffolded.
   states: empty, loading, error, typical data, edge cases (long names, negative
   amounts, unknown or incomplete figures). Story tool: _open_ (Storybook or Histoire).
 - Stories and frontend tests run against a mocked API built from the same generated
-  API types as the real client, so they cannot drift. Mocking tool: _open_.
+  API types as the real client, so they cannot drift. Mocking tool: MSW
+  ([ADR-0036](adr/0036-api-contract.md)).
 - Fixture data for stories is synthetic. No personal data, as for all fixtures.
 
 ### Testing interaction
