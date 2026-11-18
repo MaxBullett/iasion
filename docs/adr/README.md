@@ -44,3 +44,4 @@ supersedes the old one and update the old one's status.
 | [0034](0034-workspace-layout.md) | Workspace layout: one crate per context, persistence behind a feature | Accepted |
 | [0035](0035-axum-web-framework.md) | axum is the web framework, used only in `api` and `server` | Accepted |
 | [0036](0036-api-contract.md) | API contract: OpenAPI generated from the code, a typed client, both committed | Accepted |
+| [0037](0037-authentication.md) | Authentication: verify the Cloudflare Access JWT, map its email to a member | Accepted |
