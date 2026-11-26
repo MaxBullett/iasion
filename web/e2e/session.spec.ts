@@ -45,3 +45,15 @@ test('fits the width of the window', async ({ page }) => {
   )
   expect(overflow).toBe(0)
 })
+
+test('an unknown address shows that the page does not exist', async ({ page }) => {
+  const errors = collectErrors(page)
+
+  await page.goto('/accounts')
+
+  await expect(page.getByRole('heading', { level: 1, name: 'Page not found' })).toBeVisible()
+  await page.getByRole('link', { name: 'Back to the start' }).click()
+  await expect(page).toHaveURL('/')
+  await expect(page.getByText('Signed in as first.member@example.com')).toBeVisible()
+  expect(errors).toEqual([])
+})
