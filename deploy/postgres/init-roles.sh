@@ -17,4 +17,9 @@ CREATE ROLE iasion_app LOGIN PASSWORD :'app_password'; -- betterleaks:allow
 CREATE DATABASE iasion OWNER iasion_owner;
 REVOKE ALL ON DATABASE iasion FROM PUBLIC;
 GRANT CONNECT ON DATABASE iasion TO iasion_app;
+\connect iasion
+-- sqlx records the applied migrations in public._sqlx_migrations, which the owner
+-- creates on the first `iasion migrate`. The app reads it to refuse to start while
+-- migrations are pending (ADR-0040, decision 9).
+ALTER DEFAULT PRIVILEGES FOR ROLE iasion_owner IN SCHEMA public GRANT SELECT ON TABLES TO iasion_app;
 SQL
