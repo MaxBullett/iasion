@@ -217,3 +217,44 @@ jobs:
             web/test-results/
             web/playwright-report/
           retention-days: 7
+
+  supply-chain:
+    name: supply-chain
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+        with:
+          package_json_file: web/package.json
+          cache: true
+          cache_dependency_path: web/pnpm-lock.yaml
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+          package-manager-cache: false
+      - name: Install the pinned toolchain
+        run: |
+          channel=$(sed -n 's/^channel = "\(.*\)"$/\1/p' rust-toolchain.toml)
+          rustup toolchain install "$channel" --profile minimal
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+      - name: Install cargo-deny
+        # The same version and checksum as in the workspace image (ADR-0039).
+        env:
+          CARGO_DENY_VERSION: 0.22.1
+          CARGO_DENY_SHA256: 13f7e825e9cb811c2f8de63f29b0f45851dfb53004029f0f2501af524728364d
+        run: |
+          name="cargo-deny-${CARGO_DENY_VERSION}-x86_64-unknown-linux-musl"
+          curl -fsSL -o "$RUNNER_TEMP/$name.tar.gz" \
+            "https://github.com/EmbarkStudios/cargo-deny/releases/download/${CARGO_DENY_VERSION}/$name.tar.gz"
+          echo "$CARGO_DENY_SHA256  $RUNNER_TEMP/$name.tar.gz" | sha256sum -c -
+          tar -xzf "$RUNNER_TEMP/$name.tar.gz" -C "$RUNNER_TEMP"
+          mv "$RUNNER_TEMP/$name/cargo-deny" "$HOME/.cargo/bin/"
+          cargo deny --version
+      - name: Checks
+        # Advisories, licenses, bans and sources of the crates, and the licenses of the
+        # web dependencies the frontend ships (ADR-0039, decisions 13 and 14).
+        run: |
+          pnpm --dir web install --frozen-lockfile
+          cargo xtask supply-chain
