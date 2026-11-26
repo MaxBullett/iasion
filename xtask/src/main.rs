@@ -21,7 +21,9 @@ commands:
   check     format, clippy, dependency edges, context crates without `postgres`
   test      all tests of the workspace with all features
   deps      dependency edges against the context map (ADR-0034, ADR-0035)
-  features  build and test each context crate with `postgres` off (ADR-0034)";
+  features  build and test each context crate with `postgres` off (ADR-0034)
+  install-hooks  use the versioned git hooks in .githooks (ADR-0041)
+  hooks-test     run the tests of the git hooks (needs Docker or Betterleaks)";
 
 fn main() -> ExitCode {
     let args: Vec<String> = env::args().skip(1).collect();
@@ -30,6 +32,8 @@ fn main() -> ExitCode {
         Some("test") => test(),
         Some("deps") => deps(),
         Some("features") => features(),
+        Some("install-hooks") => install_hooks(),
+        Some("hooks-test") => run("sh", &[".githooks/test.sh"]),
         _ => Err(USAGE.to_string()),
     };
     match result {
@@ -96,15 +100,25 @@ fn features() -> Result<(), String> {
     Ok(())
 }
 
+fn install_hooks() -> Result<(), String> {
+    run("git", &["config", "core.hooksPath", ".githooks"])?;
+    println!("install-hooks: git now uses the hooks in .githooks");
+    Ok(())
+}
+
 fn cargo(args: &[&str]) -> Result<(), String> {
-    let status = Command::new(cargo_binary())
+    run(&cargo_binary(), args)
+}
+
+fn run(program: &str, args: &[&str]) -> Result<(), String> {
+    let status = Command::new(program)
         .args(args)
         .status()
-        .map_err(|error| format!("cargo {}: {error}", args.join(" ")))?;
+        .map_err(|error| format!("{program} {}: {error}", args.join(" ")))?;
     if status.success() {
         Ok(())
     } else {
-        Err(format!("failed: cargo {}", args.join(" ")))
+        Err(format!("failed: {program} {}", args.join(" ")))
     }
 }
 

@@ -88,11 +88,20 @@ and history, must be safe to publish.
 
 ### Automated checks
 
-Planned for R1 (see `docs/releases/r1.md`, enablers): secret scanning in a pre-commit
-hook and in CI, plus a local, gitignored denylist of private terms (`.private-terms`)
-checked before each commit, decided in `docs/adr/0039-ci-and-secret-scanning.md`. Until
-these exist, the rules above are enforced by review only. Do not claim a change passed
-these checks unless they ran.
+Decided in `docs/adr/0039-ci-and-secret-scanning.md` and
+`docs/adr/0041-git-hooks-in-shell.md`:
+
+- **Git hooks** in `.githooks/` scan every commit, commit message and push with
+  Betterleaks, and check them against a local, gitignored denylist of private terms
+  (`.private-terms`: one term per line, matched ignoring case; `#` starts a comment).
+  Install them once per clone with `cargo xtask install-hooks`, or without Rust with
+  `git config core.hooksPath .githooks`. They need a local Betterleaks of the pinned
+  version or Docker.
+- **CI** scans every commit of a pull request with the same Betterleaks version. It
+  cannot check private terms, because the list is private: for real names, the local
+  hooks and review are the only checks.
+
+Do not claim a change passed these checks unless they ran.
 
 ## Git and commits
 
