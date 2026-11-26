@@ -22,5 +22,22 @@ services:
       timeout: 5s
       retries: 30
 
+  # Local stand-in for Cloudflare Access's certs endpoint (ADR-0038, decision 7). It
+  # serves the public half of the dev key pair that `cargo xtask dev-token` creates;
+  # the private key stays one directory up and is never served.
+  access-dev:
+    image: busybox:1.37.0
+    command: ["httpd", "-f", "-p", "8080", "-h", "/srv"]
+    ports:
+      - "127.0.0.1:8790:8080"
+    volumes:
+      - type: bind
+        source: ./.dev/access/public
+        target: /srv
+        read_only: true
+        # Docker would create a missing directory as root; fail instead (README).
+        bind:
+          create_host_path: false
+
 volumes:
   db-data:

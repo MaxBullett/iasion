@@ -13,14 +13,38 @@ publish = false
 # Internal crates are added here as `iasion-<name> = { path = "crates/<name>" }` when
 # the first crate depends on them. Which may depend on which is checked by
 # `cargo xtask deps` against the context map (ADR-0034, decision 7).
+iasion-api = { path = "crates/api" }
+iasion-app = { path = "crates/app" }
 iasion-migrations = { path = "crates/migrations" }
 
 # External crates, one version each (ADR-0034, decision 9).
+axum = "0.8.9"
+http = "1"
+http-body-util = "0.1"
+# Access tokens (ADR-0037). RustCrypto as the only backend: no C toolchain in the build.
+jsonwebtoken = { version = "12.0.0", default-features = false, features = ["rust_crypto"] }
+# Fetches the Access keys over HTTPS (ADR-0037). rustls with the system's roots.
+reqwest = { version = "0.13.5", default-features = false, features = ["rustls"] }
+rsa = "0.10"
+serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 # Plain SQL checked at compile time, no ORM; no TLS, the database is only reachable on
 # the private network (ADR-0033, ADR-0040).
 sqlx = { version = "0.9.1", default-features = false, features = ["runtime-tokio", "postgres", "macros", "migrate", "tls-none"] }
-tokio = { version = "1.54", features = ["macros", "rt-multi-thread"] }
+tokio = { version = "1.54", features = ["macros", "rt-multi-thread", "net", "signal", "time"] }
+tower = { version = "0.5", features = ["util"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["fmt", "env-filter"] }
+# The OpenAPI description, generated from the code (ADR-0036).
+utoipa = "6.0.0"
+utoipa-axum = "0.3.0"
+
+# RSA key generation in tests and in `cargo xtask dev-token` is slow without
+# optimisation.
+[profile.dev.package.rsa]
+opt-level = 3
+[profile.dev.package.crypto-bigint]
+opt-level = 3
 
 [workspace.lints.rust]
 unsafe_code = "forbid"
