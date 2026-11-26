@@ -4,6 +4,7 @@
 mod deps;
 mod dev_access;
 mod migrations;
+mod web;
 
 use std::env;
 use std::fs;
@@ -27,7 +28,10 @@ commands:
   deps      dependency edges against the context map (ADR-0034, ADR-0035)
   migrations  migration names, and one schema per migration (ADR-0033)
   features  build and test each context crate with `postgres` off (ADR-0034)
-  openapi   regenerate crates/api/openapi.json from the code (ADR-0036)
+  openapi   regenerate crates/api/openapi.json from the code, and the web client
+            from it (ADR-0036)
+  web-check the frontend: frozen install, lint, format, types, tests, client drift
+            (ADR-0043)
   dev-token [--email <email>]  print a dev Access token, by default for the setup
                  email; creates the dev key pair on first use (ADR-0038)
   install-hooks  use the versioned git hooks in .githooks (ADR-0041)
@@ -41,7 +45,8 @@ fn main() -> ExitCode {
         Some("deps") => deps(),
         Some("migrations") => migrations(),
         Some("features") => features(),
-        Some("openapi") => openapi(false),
+        Some("openapi") => openapi(false).and_then(|()| web::generate_client()),
+        Some("web-check") => web::check(),
         Some("dev-token") => dev_access::dev_token(&args[1..]),
         Some("install-hooks") => install_hooks(),
         Some("hooks-test") => run("sh", &[".githooks/test.sh"]),
