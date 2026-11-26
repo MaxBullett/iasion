@@ -85,10 +85,31 @@ jobs:
           echo "::add-mask::$app"
           IASION_DB_OWNER_PASSWORD=$owner IASION_DB_APP_PASSWORD=$app sh deploy/postgres/init-roles.sh
           echo "IASION_MIGRATE_DATABASE_URL=postgres://iasion_owner:$owner@localhost:5432/iasion" >>"$GITHUB_ENV"
+          echo "IASION_DATABASE_URL=postgres://iasion_app:$app@localhost:5432/iasion" >>"$GITHUB_ENV"
       - name: Checks
         run: cargo xtask check
       - name: Migrations on an empty database
         # As the owner role, as on the host (ADR-0033, decision 19; ADR-0039).
         run: cargo run --quiet --package iasion-server -- migrate
+      - name: The app starts on the migrated database
+        # As the application role, with placeholder settings and no Access keys: it
+        # must start, pass its migration check and answer its health check
+        # (ADR-0040, decisions 9 and 16).
+        env:
+          IASION_SETUP_EMAIL: first.member@example.com
+          IASION_ACCESS_TEAM_DOMAIN: example-team.cloudflareaccess.com
+          IASION_ACCESS_AUD: placeholder
+          IASION_PUBLIC_ORIGIN: https://iasion.example.com
+          IASION_ACCESS_CERTS_URL: http://127.0.0.1:9/certs
+        run: |
+          cargo build --quiet --package iasion-server
+          target/debug/iasion serve >serve.log 2>&1 &
+          for _ in $(seq 30); do
+            if target/debug/iasion health; then healthy=1; break; fi
+            sleep 1
+          done
+          kill %1 || true
+          cat serve.log
+          test "${healthy:-0}" = 1
       - name: Tests
         run: cargo xtask test

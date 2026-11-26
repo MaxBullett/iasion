@@ -8,10 +8,15 @@ services:
     working_dir: /workspace
     volumes:
       - .:/workspace:cached
+    # The settings of .env; the services are reached by their names here.
+    env_file: .env
     environment:
+      IASION_ACCESS_CERTS_URL: http://access-dev:8080/certs
       DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@db:5432/iasion
       IASION_DATABASE_URL: postgres://iasion_app:${IASION_DB_APP_PASSWORD}@db:5432/iasion
       IASION_MIGRATE_DATABASE_URL: postgres://iasion_owner:${IASION_DB_OWNER_PASSWORD}@db:5432/iasion
     depends_on:
       db:
         condition: service_healthy
+      access-dev:
+        condition: service_started

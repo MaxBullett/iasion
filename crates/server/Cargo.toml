@@ -11,9 +11,15 @@ name = "iasion"
 path = "src/main.rs"
 
 [dependencies]
+axum.workspace = true
+iasion-api.workspace = true
+iasion-app.workspace = true
 iasion-migrations.workspace = true
+reqwest.workspace = true
 sqlx.workspace = true
 tokio.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
 
 [lints]
 workspace = true

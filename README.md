@@ -47,14 +47,21 @@ Needs Docker with Compose; everything else is pinned in the repository
 ([ADR-0038](docs/adr/0038-dev-environment.md)).
 
 1. `cp .env.example .env`. The placeholder values work for development.
-2. Either open the repository in its devcontainer, or run `docker compose up -d db` and
-   use a toolchain of your own (Rust from `rust-toolchain.toml`). direnv users get `.env`
-   loaded through `.envrc`, and a personal, gitignored `.envrc.local`.
+2. `mkdir -p .dev/access/public`, then either open the repository in its devcontainer,
+   or run `docker compose up -d` and use a toolchain of your own (Rust from
+   `rust-toolchain.toml`). direnv users get `.env` loaded through `.envrc`, and a
+   personal, gitignored `.envrc.local`.
 3. Install the git hooks once per clone: `git config core.hooksPath .githooks` (the
    devcontainer does it). Put private terms that must never be committed into
    `.private-terms`, one per line ([ADR-0041](docs/adr/0041-git-hooks-in-shell.md)).
 4. `cargo run -p iasion-server -- migrate` creates the schemas. `cargo xtask check` and
    `cargo xtask test` run what CI runs.
+5. `cargo run -p iasion-server -- serve` starts the app on port 8080. Cloudflare Access
+   is stood in for by `access-dev`: `cargo xtask dev-token` prints a token for the
+   setup email, signed with a dev key pair it creates in `.dev/` on first use
+   ([ADR-0038](docs/adr/0038-dev-environment.md)). Send it in the
+   `Cf-Access-Jwt-Assertion` header, e.g. to `GET /api/session`. Right after the key
+   pair is created, the app may take a minute to fetch it.
 
 ## License
 
