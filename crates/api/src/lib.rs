@@ -15,11 +15,15 @@ use axum::extract::{Request, State};
 use axum::http::{HeaderValue, Method, StatusCode, header};
 use axum::middleware::{self, Next};
 use axum::response::{IntoResponse, Response};
-use axum::routing::get;
 use axum::{Extension, Json};
 use iasion_app::SystemStatus;
 use serde::Serialize;
 use tracing::Instrument;
+use utoipa::openapi::OpenApi;
+use utoipa::openapi::security::{ApiKey, ApiKeyValue, SecurityScheme};
+use utoipa::{Modify, ToSchema};
+use utoipa_axum::router::OpenApiRouter;
+use utoipa_axum::routes;
 
 /// Settings of the API, read from the environment by `server` (`.env.example`).
 #[derive(Debug, Clone)]
@@ -65,14 +69,58 @@ pub fn router(
         status,
         request_ids: Arc::new(AtomicU64::new(0)),
     };
+    let (routes, _) = routes().split_for_parts();
     // The layer added last runs first: logging, then the cross-site checks, then
     // authentication.
-    Router::new()
-        .route("/api/session", get(session))
+    routes
         .layer(middleware::from_fn_with_state(state.clone(), authenticate))
         .layer(middleware::from_fn_with_state(state.clone(), cross_site))
         .layer(middleware::from_fn_with_state(state.clone(), request_log))
         .with_state(state)
+}
+
+/// The API description, generated from the routes (ADR-0036, decision 1). Committed
+/// as `crates/api/openapi.json`; `cargo xtask openapi` regenerates it.
+pub fn openapi() -> OpenApi {
+    let (_, openapi) = routes().split_for_parts();
+    openapi
+}
+
+/// Every route, with its part of the description.
+fn routes() -> OpenApiRouter<AppState> {
+    OpenApiRouter::with_openapi(<Description as utoipa::OpenApi>::openapi())
+        .routes(routes!(session))
+}
+
+#[derive(utoipa::OpenApi)]
+#[openapi(
+    info(
+        title = "Iasion",
+        description = "The API of Iasion's frontend. Every route needs a Cloudflare Access \
+            token; requests other than GET must come from the app's own origin and carry \
+            JSON. Errors are RFC 9457 problem details.",
+        license(name = "AGPL-3.0-or-later", identifier = "AGPL-3.0-or-later"),
+    ),
+    components(schemas(problem::Problem, problem::ProblemType)),
+    security(("cloudflare_access" = [])),
+    modifiers(&AccessToken),
+)]
+struct Description;
+
+/// The Access token as the security scheme of every route (ADR-0037, decision 1).
+struct AccessToken;
+
+impl Modify for AccessToken {
+    fn modify(&self, openapi: &mut OpenApi) {
+        let components = openapi.components.get_or_insert_with(Default::default);
+        components.add_security_scheme(
+            "cloudflare_access",
+            SecurityScheme::ApiKey(ApiKey::Header(ApiKeyValue::with_description(
+                "Cf-Access-Jwt-Assertion",
+                "The JWT that Cloudflare Access adds to every request it lets through.",
+            ))),
+        );
+    }
 }
 
 /// Gives each request an ID of its own, logs under it, and returns it in a header. An
@@ -101,7 +149,7 @@ async fn cross_site(State(state): State<AppState>, request: Request, next: Next)
         tracing::info!(reason = "not the own origin", "request denied");
         return problem::response(
             StatusCode::FORBIDDEN,
-            problem::CROSS_ORIGIN,
+            problem::ProblemType::CrossOrigin,
             "Requests other than GET must come from the app's own origin",
         );
     }
@@ -115,7 +163,7 @@ async fn cross_site(State(state): State<AppState>, request: Request, next: Next)
         tracing::info!(reason = "not JSON", "request denied");
         return problem::response(
             StatusCode::UNSUPPORTED_MEDIA_TYPE,
-            problem::UNSUPPORTED_MEDIA_TYPE,
+            problem::ProblemType::UnsupportedMediaType,
             "Requests other than GET must carry application/json",
         );
     }
@@ -140,7 +188,7 @@ async fn authenticate(State(state): State<AppState>, mut request: Request, next:
             tracing::warn!(reason = "no Access keys", "request refused");
             return problem::response(
                 StatusCode::SERVICE_UNAVAILABLE,
-                problem::ACCESS_KEYS_UNAVAILABLE,
+                problem::ProblemType::AccessKeysUnavailable,
                 "No Access keys are available to verify the request",
             );
         }
@@ -159,7 +207,7 @@ fn unauthenticated(reason: &'static str) -> Response {
     tracing::info!(reason, "request denied");
     problem::response(
         StatusCode::UNAUTHORIZED,
-        problem::UNAUTHENTICATED,
+        problem::ProblemType::Unauthenticated,
         "A valid Cloudflare Access token is required",
     )
 }
@@ -168,22 +216,37 @@ fn denied(reason: &'static str) -> Response {
     tracing::info!(reason, "request denied");
     problem::response(
         StatusCode::FORBIDDEN,
-        problem::ACCESS_DENIED,
+        problem::ProblemType::AccessDenied,
         "This sign-in may not use Iasion",
     )
 }
 
 /// The signed-in session.
-#[derive(Serialize)]
+#[derive(Serialize, ToSchema)]
 struct Session {
     /// The verified email, trimmed and lowercased.
     email: String,
     /// No household exists yet; only first setup can follow (ADR-0024).
     first_setup_pending: bool,
-    /// Version of the latest applied migration.
+    /// Version of the latest applied migration; `null` before the first.
+    #[schema(required = true)]
     schema_version: Option<i64>,
 }
 
+/// Who is signed in, and the state of the installation.
+#[utoipa::path(
+    get,
+    path = "/api/session",
+    responses(
+        (status = OK, body = Session, description = "The session"),
+        (status = UNAUTHORIZED, body = problem::Problem, content_type = problem::CONTENT_TYPE,
+            description = "No valid Access token"),
+        (status = FORBIDDEN, body = problem::Problem, content_type = problem::CONTENT_TYPE,
+            description = "The sign-in may not use Iasion"),
+        (status = SERVICE_UNAVAILABLE, body = problem::Problem, content_type = problem::CONTENT_TYPE,
+            description = "No Access keys, or no database"),
+    ),
+)]
 async fn session(
     State(state): State<AppState>,
     Extension(VerifiedEmail(email)): Extension<VerifiedEmail>,
@@ -199,7 +262,7 @@ async fn session(
             tracing::warn!(reason = "status unavailable", "request failed");
             problem::response(
                 StatusCode::SERVICE_UNAVAILABLE,
-                problem::DATABASE_UNAVAILABLE,
+                problem::ProblemType::DatabaseUnavailable,
                 "The database is unavailable",
             )
         }

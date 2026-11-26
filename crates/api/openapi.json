@@ -1,0 +1,142 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Iasion",
+    "description": "The API of Iasion's frontend. Every route needs a Cloudflare Access token; requests other than GET must come from the app's own origin and carry JSON. Errors are RFC 9457 problem details.",
+    "license": {
+      "name": "AGPL-3.0-or-later",
+      "identifier": "AGPL-3.0-or-later"
+    },
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/api/session": {
+      "get": {
+        "summary": "Who is signed in, and the state of the installation.",
+        "operationId": "session",
+        "responses": {
+          "200": {
+            "description": "The session",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Session"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid Access token",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The sign-in may not use Iasion",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "No Access keys, or no database",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Problem": {
+        "type": "object",
+        "description": "A problem response's body (RFC 9457). Nothing in it comes from the request.",
+        "required": [
+          "type",
+          "title",
+          "status"
+        ],
+        "properties": {
+          "status": {
+            "type": "integer",
+            "format": "int32",
+            "description": "The HTTP status code.",
+            "minimum": 0
+          },
+          "title": {
+            "type": "string",
+            "description": "A short summary, the same for every occurrence of the type."
+          },
+          "type": {
+            "$ref": "#/components/schemas/ProblemType"
+          }
+        }
+      },
+      "ProblemType": {
+        "type": "string",
+        "description": "The typed errors, each a relative URI under `/problems/` (ADR-0036, decision 9).",
+        "enum": [
+          "/problems/unauthenticated",
+          "/problems/access-denied",
+          "/problems/cross-origin",
+          "/problems/unsupported-media-type",
+          "/problems/access-keys-unavailable",
+          "/problems/database-unavailable"
+        ]
+      },
+      "Session": {
+        "type": "object",
+        "description": "The signed-in session.",
+        "required": [
+          "email",
+          "first_setup_pending",
+          "schema_version"
+        ],
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "The verified email, trimmed and lowercased."
+          },
+          "first_setup_pending": {
+            "type": "boolean",
+            "description": "No household exists yet; only first setup can follow (ADR-0024)."
+          },
+          "schema_version": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "description": "Version of the latest applied migration; `null` before the first."
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "cloudflare_access": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "Cf-Access-Jwt-Assertion",
+        "description": "The JWT that Cloudflare Access adds to every request it lets through."
+      }
+    }
+  },
+  "security": [
+    {
+      "cloudflare_access": []
+    }
+  ]
+}

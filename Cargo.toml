@@ -35,6 +35,9 @@ tokio = { version = "1.54", features = ["macros", "rt-multi-thread", "net", "sig
 tower = { version = "0.5", features = ["util"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["fmt", "env-filter"] }
+# The OpenAPI description, generated from the code (ADR-0036).
+utoipa = "6.0.0"
+utoipa-axum = "0.3.0"
 
 # RSA key generation in tests and in `cargo xtask dev-token` is slow without
 # optimisation.

@@ -21,11 +21,13 @@ const CONTEXT_CRATES: &[&str] = &[
 const USAGE: &str = "usage: cargo xtask <command>
 
 commands:
-  check     format, clippy, dependency edges, context crates without `postgres`
+  check     format, clippy, dependency edges, migrations, context crates without
+            `postgres`, and that crates/api/openapi.json is up to date
   test      all tests of the workspace with all features
   deps      dependency edges against the context map (ADR-0034, ADR-0035)
   migrations  migration names, and one schema per migration (ADR-0033)
   features  build and test each context crate with `postgres` off (ADR-0034)
+  openapi   regenerate crates/api/openapi.json from the code (ADR-0036)
   dev-token [--email <email>]  print a dev Access token, by default for the setup
                  email; creates the dev key pair on first use (ADR-0038)
   install-hooks  use the versioned git hooks in .githooks (ADR-0041)
@@ -39,6 +41,7 @@ fn main() -> ExitCode {
         Some("deps") => deps(),
         Some("migrations") => migrations(),
         Some("features") => features(),
+        Some("openapi") => openapi(false),
         Some("dev-token") => dev_access::dev_token(&args[1..]),
         Some("install-hooks") => install_hooks(),
         Some("hooks-test") => run("sh", &[".githooks/test.sh"]),
@@ -66,7 +69,47 @@ fn check() -> Result<(), String> {
     ])?;
     deps()?;
     migrations()?;
-    features()
+    features()?;
+    openapi(true)
+}
+
+/// The committed API description, generated from the code (ADR-0036, decision 2).
+const OPENAPI: &str = "crates/api/openapi.json";
+
+/// Writes the API description, or with `check` fails if the committed one differs.
+fn openapi(check: bool) -> Result<(), String> {
+    let output = Command::new(cargo_binary())
+        .args([
+            "run",
+            "--quiet",
+            "--package",
+            "iasion-api",
+            "--example",
+            "openapi",
+        ])
+        .output()
+        .map_err(|error| format!("openapi: {error}"))?;
+    if !output.status.success() {
+        return Err(format!(
+            "openapi: generating failed:\n{}",
+            String::from_utf8_lossy(&output.stderr)
+        ));
+    }
+    let generated = String::from_utf8(output.stdout).map_err(|error| error.to_string())?;
+    if !check {
+        fs::write(OPENAPI, &generated).map_err(|error| format!("{OPENAPI}: {error}"))?;
+        println!("openapi: wrote {OPENAPI}");
+        return Ok(());
+    }
+    let committed = fs::read_to_string(OPENAPI).unwrap_or_default();
+    if committed == generated {
+        println!("openapi: {OPENAPI} matches the code");
+        Ok(())
+    } else {
+        Err(format!(
+            "openapi: {OPENAPI} differs from the code; run `cargo xtask openapi` and commit it"
+        ))
+    }
 }
 
 fn test() -> Result<(), String> {
