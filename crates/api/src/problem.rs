@@ -23,6 +23,9 @@ pub const UNSUPPORTED_MEDIA_TYPE: &str = "/problems/unsupported-media-type";
 /// served (ADR-0037, decision 6).
 pub const ACCESS_KEYS_UNAVAILABLE: &str = "/problems/access-keys-unavailable";
 
+/// 404: no API route has this path.
+pub const NOT_FOUND: &str = "/problems/not-found";
+
 /// 503: the installation's status could not be read from the database.
 pub const DATABASE_UNAVAILABLE: &str = "/problems/database-unavailable";
 
@@ -53,17 +56,20 @@ pub enum ProblemType {
     AccessKeysUnavailable,
     #[serde(rename = "/problems/database-unavailable")]
     DatabaseUnavailable,
+    #[serde(rename = "/problems/not-found")]
+    NotFound,
 }
 
 impl ProblemType {
     /// Every type, for the check that each matches its constant.
-    pub const ALL: [ProblemType; 6] = [
+    pub const ALL: [ProblemType; 7] = [
         Self::Unauthenticated,
         Self::AccessDenied,
         Self::CrossOrigin,
         Self::UnsupportedMediaType,
         Self::AccessKeysUnavailable,
         Self::DatabaseUnavailable,
+        Self::NotFound,
     ];
 
     /// The type's URI, as its constant above.
@@ -75,6 +81,7 @@ impl ProblemType {
             Self::UnsupportedMediaType => UNSUPPORTED_MEDIA_TYPE,
             Self::AccessKeysUnavailable => ACCESS_KEYS_UNAVAILABLE,
             Self::DatabaseUnavailable => DATABASE_UNAVAILABLE,
+            Self::NotFound => NOT_FOUND,
         }
     }
 }

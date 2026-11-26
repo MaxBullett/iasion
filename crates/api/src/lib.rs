@@ -5,7 +5,10 @@
 //! origin and carry JSON (ADR-0037, decisions 10 and 11).
 
 pub mod access;
+mod frontend;
 pub mod problem;
+
+pub use frontend::app;
 
 use std::sync::Arc;
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -90,6 +93,8 @@ pub fn openapi() -> OpenApi {
 fn routes() -> OpenApiRouter<AppState> {
     OpenApiRouter::with_openapi(<Description as utoipa::OpenApi>::openapi())
         .routes(routes!(session))
+        // Any other path under /api is a problem, never the frontend's page.
+        .route("/api/{*rest}", axum::routing::any(not_found))
 }
 
 #[derive(utoipa::OpenApi)]
@@ -218,6 +223,14 @@ fn denied(reason: &'static str) -> Response {
         StatusCode::FORBIDDEN,
         problem::ProblemType::AccessDenied,
         "This sign-in may not use Iasion",
+    )
+}
+
+async fn not_found() -> Response {
+    problem::response(
+        StatusCode::NOT_FOUND,
+        problem::ProblemType::NotFound,
+        "No API route has this path",
     )
 }
 

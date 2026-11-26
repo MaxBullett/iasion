@@ -34,7 +34,11 @@ pub async fn run() -> Result<(), String> {
     }
     tokio::spawn(refresh_hourly(keys.clone()));
 
-    let app = iasion_api::router(config.api, keys, Arc::new(DatabaseStatus(pool.clone())));
+    if !config.web_dir.join("index.html").is_file() {
+        tracing::warn!(web_dir = %config.web_dir.display(), "no built frontend; only the API is served");
+    }
+    let api = iasion_api::router(config.api, keys, Arc::new(DatabaseStatus(pool.clone())));
+    let app = iasion_api::app(api, &config.web_dir);
     let app_listener = bind(config.listen_addr).await?;
     let health_listener = bind(config.health_addr).await?;
     tracing::info!(app = %config.listen_addr, health = %config.health_addr, "listening");

@@ -94,7 +94,8 @@
           "/problems/cross-origin",
           "/problems/unsupported-media-type",
           "/problems/access-keys-unavailable",
-          "/problems/database-unavailable"
+          "/problems/database-unavailable",
+          "/problems/not-found"
         ]
       },
       "Session": {

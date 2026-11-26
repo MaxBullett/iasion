@@ -10,8 +10,13 @@ const DEFAULT_LISTEN_ADDR: &str = "0.0.0.0:8080";
 /// loopback interface only, so never through the tunnel (ADR-0040, decision 16).
 pub const DEFAULT_HEALTH_ADDR: &str = "127.0.0.1:8081";
 
+/// The built frontend, relative to the working directory, unless `IASION_WEB_DIR`
+/// says otherwise (ADR-0043, decision 12).
+const DEFAULT_WEB_DIR: &str = "web/dist";
+
 pub struct Config {
     pub api: iasion_api::Settings,
+    pub web_dir: std::path::PathBuf,
     pub certs_url: String,
     pub listen_addr: SocketAddr,
     pub health_addr: SocketAddr,
@@ -32,6 +37,9 @@ impl Config {
                 setup_email: required("IASION_SETUP_EMAIL")?,
             },
             certs_url,
+            web_dir: optional("IASION_WEB_DIR")
+                .unwrap_or_else(|| DEFAULT_WEB_DIR.into())
+                .into(),
             listen_addr: address("IASION_LISTEN_ADDR", DEFAULT_LISTEN_ADDR)?,
             health_addr: health_addr()?,
         })

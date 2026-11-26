@@ -40,7 +40,7 @@ export interface components {
          * @description The typed errors, each a relative URI under `/problems/` (ADR-0036, decision 9).
          * @enum {string}
          */
-        ProblemType: "/problems/unauthenticated" | "/problems/access-denied" | "/problems/cross-origin" | "/problems/unsupported-media-type" | "/problems/access-keys-unavailable" | "/problems/database-unavailable";
+        ProblemType: "/problems/unauthenticated" | "/problems/access-denied" | "/problems/cross-origin" | "/problems/unsupported-media-type" | "/problems/access-keys-unavailable" | "/problems/database-unavailable" | "/problems/not-found";
         /** @description The signed-in session. */
         Session: {
             /** @description The verified email, trimmed and lowercased. */
