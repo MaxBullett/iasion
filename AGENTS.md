@@ -112,6 +112,11 @@ Do not claim a change passed these checks unless they ran.
 - One branch per story, decision or chore. Name: `<type>/<id>-<slug>`, e.g.
   `feat/s-006-record-spending`, `docs/adr-0013-persistence`, `chore/secret-scanning`.
   Use the most specific ID available (story, ADR, OQ); omit it only for chores without one.
+- Every pull request that changes something a person can run has a **How to test**
+  section. It lists the steps to try the change in the dev environment, from setup to
+  result, each with the result to expect, including requests or inputs that must be
+  rejected. The commands run as given, and use only placeholders and the reference
+  household. The section doubles as the human's acceptance check before merging.
 - Pull requests are squash-merged by default. The squash commit on `main` follows the
   message format below and is the record that history readers rely on.
 - Exception: a pull request whose commits each record a separate accepted decision
@@ -166,7 +171,8 @@ Refs: <IDs>
    them pass without review.
 4. Update specs and glossary if anything changed, in the same branch.
 5. Open a pull request titled like the final squash commit, listing the story ID and the
-   acceptance criteria covered.
+   acceptance criteria covered, with a How to test section that walks through them in
+   the dev environment.
 
 ## Testing expectations
 
