@@ -50,3 +50,4 @@ supersedes the old one and update the old one's status.
 | [0040](0040-deployment.md) | Deployment: one image, Podman on a dedicated VM, pulled updates with rollback | Accepted |
 | [0041](0041-git-hooks-in-shell.md) | Git hooks are shell scripts that need only git, grep and Betterleaks or Docker | Accepted |
 | [0042](0042-license-agpl-3-or-later.md) | The license is AGPL-3.0-or-later | Accepted |
+| [0043](0043-frontend-tooling.md) | Frontend tooling: Vite, ESLint and Prettier, served by the backend | Accepted |
