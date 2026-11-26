@@ -26,7 +26,7 @@ services:
   # serves the public half of the dev key pair that `cargo xtask dev-token` creates;
   # the private key stays one directory up and is never served.
   access-dev:
-    image: busybox:1.37.0
+    image: busybox:1.38.0
     command: ["httpd", "-f", "-p", "8080", "-h", "/srv"]
     ports:
       - "127.0.0.1:8790:8080"
