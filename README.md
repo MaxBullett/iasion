@@ -55,7 +55,8 @@ Needs Docker with Compose; everything else is pinned in the repository
    devcontainer does it). Put private terms that must never be committed into
    `.private-terms`, one per line ([ADR-0041](docs/adr/0041-git-hooks-in-shell.md)).
 4. `cargo run -p iasion-server -- migrate` creates the schemas. `cargo xtask check` and
-   `cargo xtask test` run what CI runs.
+   `cargo xtask test` run what CI runs, and `cargo xtask supply-chain` checks
+   advisories and licenses (needs cargo-deny, which the devcontainer has).
 5. `cargo run -p iasion-server -- serve` starts the app on port 8080. Cloudflare Access
    is stood in for by `access-dev`: `cargo xtask dev-token` prints a token for the
    setup email, signed with a dev key pair it creates in `.dev/` on first use
