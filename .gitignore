@@ -6,6 +6,7 @@
 .env
 .env.*
 !.env.example
+.envrc.local
 *.pem
 *.key
 *.p12

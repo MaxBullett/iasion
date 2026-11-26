@@ -9,8 +9,8 @@ should go.
 
 ## Status
 
-Pre-alpha. Nothing runs yet. The project is in its specification phase: story mapping
-and domain modeling come before code.
+Pre-alpha. Nothing runs yet. The specification of the first release is done; the walking
+skeleton is being built.
 
 ## What it is
 
@@ -40,6 +40,21 @@ and domain modeling come before code.
 
 Spec-driven and test-first. Specs are the source of truth, tests are derived from
 acceptance criteria, code follows. See [ADR-0001](docs/adr/0001-spec-driven-test-first.md).
+
+## Development
+
+Needs Docker with Compose; everything else is pinned in the repository
+([ADR-0038](docs/adr/0038-dev-environment.md)).
+
+1. `cp .env.example .env`. The placeholder values work for development.
+2. Either open the repository in its devcontainer, or run `docker compose up -d db` and
+   use a toolchain of your own (Rust from `rust-toolchain.toml`). direnv users get `.env`
+   loaded through `.envrc`, and a personal, gitignored `.envrc.local`.
+3. Install the git hooks once per clone: `git config core.hooksPath .githooks` (the
+   devcontainer does it). Put private terms that must never be committed into
+   `.private-terms`, one per line ([ADR-0041](docs/adr/0041-git-hooks-in-shell.md)).
+4. `cargo run -p iasion-server -- migrate` creates the schemas. `cargo xtask check` and
+   `cargo xtask test` run what CI runs.
 
 ## License
 

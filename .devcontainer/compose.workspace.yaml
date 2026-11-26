@@ -1,0 +1,17 @@
+# The devcontainer's workspace service, added to ../compose.yaml (ADR-0038). Relative
+# paths are resolved against the repository root, the directory of the first file.
+services:
+  workspace:
+    build:
+      context: .devcontainer
+    command: sleep infinity
+    working_dir: /workspace
+    volumes:
+      - .:/workspace:cached
+    environment:
+      DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@db:5432/iasion
+      IASION_DATABASE_URL: postgres://iasion_app:${IASION_DB_APP_PASSWORD}@db:5432/iasion
+      IASION_MIGRATE_DATABASE_URL: postgres://iasion_owner:${IASION_DB_OWNER_PASSWORD}@db:5432/iasion
+    depends_on:
+      db:
+        condition: service_healthy

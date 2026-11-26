@@ -1,0 +1,9 @@
+{
+  "name": "iasion",
+  "dockerComposeFile": ["../compose.yaml", "compose.workspace.yaml"],
+  "service": "workspace",
+  "workspaceFolder": "/workspace",
+  "shutdownAction": "stopCompose",
+  "remoteUser": "dev",
+  "postCreateCommand": "git config core.hooksPath .githooks"
+}

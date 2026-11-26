@@ -1,0 +1,26 @@
+# Services for development (ADR-0038). Values come from .env; copy .env.example.
+# The devcontainer adds its workspace service from .devcontainer/compose.workspace.yaml.
+name: iasion
+
+services:
+  db:
+    image: postgres:18.7
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set it in .env (see .env.example)}
+      IASION_DB_OWNER_PASSWORD: ${IASION_DB_OWNER_PASSWORD:?set it in .env (see .env.example)}
+      IASION_DB_APP_PASSWORD: ${IASION_DB_APP_PASSWORD:?set it in .env (see .env.example)}
+    ports:
+      # Reachable from the host only.
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql
+      # Creates the owner and application roles with the production grants (ADR-0038).
+      - ./deploy/postgres/init-roles.sh:/docker-entrypoint-initdb.d/10-init-roles.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready --username postgres"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+
+volumes:
+  db-data:
