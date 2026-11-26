@@ -4,6 +4,7 @@
 mod deps;
 mod dev_access;
 mod migrations;
+mod supply_chain;
 mod web;
 
 use std::env;
@@ -30,6 +31,7 @@ commands:
   features  build and test each context crate with `postgres` off (ADR-0034)
   openapi   regenerate crates/api/openapi.json from the code, and the web client
             from it (ADR-0036)
+  supply-chain  cargo-deny, and the web licenses against its allow list (ADR-0039)
   web-check the frontend: frozen install, lint, format, types, tests, client drift
             (ADR-0043)
   dev-token [--email <email>]  print a dev Access token, by default for the setup
@@ -47,6 +49,7 @@ fn main() -> ExitCode {
         Some("features") => features(),
         Some("openapi") => openapi(false).and_then(|()| web::generate_client()),
         Some("web-check") => web::check(),
+        Some("supply-chain") => supply_chain::check(),
         Some("dev-token") => dev_access::dev_token(&args[1..]),
         Some("install-hooks") => install_hooks(),
         Some("hooks-test") => run("sh", &[".githooks/test.sh"]),
@@ -203,6 +206,6 @@ fn run(program: &str, args: &[&str]) -> Result<(), String> {
 }
 
 /// The cargo that runs `xtask`, so the pinned toolchain is used throughout.
-fn cargo_binary() -> String {
+pub fn cargo_binary() -> String {
     env::var("CARGO").unwrap_or_else(|_| "cargo".to_string())
 }

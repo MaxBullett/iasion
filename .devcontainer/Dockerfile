@@ -21,6 +21,23 @@ RUN set -eu; \
     rm "/tmp/$file"; \
     betterleaks version
 
+# cargo-deny for `cargo xtask supply-chain` (ADR-0039). Same version as in CI.
+ARG CARGO_DENY_VERSION=0.22.1
+RUN set -eu; \
+    case "$TARGETARCH" in \
+      amd64) arch=x86_64; sum=13f7e825e9cb811c2f8de63f29b0f45851dfb53004029f0f2501af524728364d ;; \
+      arm64) arch=aarch64; sum=0bac0838a1653ce693e4602b8634d15ca179edd2198e438af9c35ab1c551d509 ;; \
+      *) echo "unsupported architecture: $TARGETARCH" >&2; exit 1 ;; \
+    esac; \
+    name="cargo-deny-${CARGO_DENY_VERSION}-${arch}-unknown-linux-musl"; \
+    curl -fsSL -o "/tmp/$name.tar.gz" \
+      "https://github.com/EmbarkStudios/cargo-deny/releases/download/${CARGO_DENY_VERSION}/$name.tar.gz"; \
+    echo "$sum  /tmp/$name.tar.gz" | sha256sum -c -; \
+    tar -xzf "/tmp/$name.tar.gz" -C /tmp; \
+    mv "/tmp/$name/cargo-deny" /usr/local/cargo/bin/; \
+    rm -rf "/tmp/$name" "/tmp/$name.tar.gz"; \
+    cargo-deny --version
+
 RUN apt-get update \
     && apt-get install -y --no-install-recommends postgresql-client \
     && rm -rf /var/lib/apt/lists/*

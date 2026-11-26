@@ -1,0 +1,43 @@
+# Dependabot (ADR-0039, decision 16). Version updates wait three days after a release,
+# like pnpm's minimumReleaseAge (ADR-0043); security updates do not wait.
+version: 2
+updates:
+  - package-ecosystem: cargo
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 3
+
+  # pnpm (web/package.json pins it) is the npm ecosystem for Dependabot.
+  - package-ecosystem: npm
+    directory: /web
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 3
+
+  # The workspace image: rust and node.
+  - package-ecosystem: docker
+    directory: /.devcontainer
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 3
+
+  # compose.yaml: postgres and busybox.
+  - package-ecosystem: docker-compose
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 3
+
+  # Pinned by commit SHA (ADR-0039, decision 15); Dependabot updates the SHA and the
+  # version comment.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 3
