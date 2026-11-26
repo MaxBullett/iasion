@@ -258,3 +258,96 @@ jobs:
         run: |
           pnpm --dir web install --frozen-lockfile
           cargo xtask supply-chain
+
+  image:
+    name: image
+    runs-on: ubuntu-latest
+    services:
+      db:
+        image: postgres:18.7
+        env:
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready --username postgres"
+          --health-interval 2s --health-timeout 5s --health-retries 30
+    env:
+      PGHOST: localhost
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - name: Build
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          load: true
+          tags: iasion:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: The image runs as on the host
+        # Migrate as the owner role, then serve read-only with every capability
+        # dropped, as the quadlet runs it (ADR-0040), and ask the health check and the
+        # page.
+        run: |
+          owner=$(openssl rand -hex 24)
+          app=$(openssl rand -hex 24)
+          echo "::add-mask::$owner"
+          echo "::add-mask::$app"
+          IASION_DB_OWNER_PASSWORD=$owner IASION_DB_APP_PASSWORD=$app sh deploy/postgres/init-roles.sh
+          docker run --rm --network host \
+            -e IASION_MIGRATE_DATABASE_URL="postgres://iasion_owner:$owner@localhost:5432/iasion" \
+            iasion:ci migrate
+          docker run --detach --name app --network host --read-only --cap-drop ALL \
+            --security-opt no-new-privileges \
+            -e IASION_DATABASE_URL="postgres://iasion_app:$app@localhost:5432/iasion" \
+            -e IASION_SETUP_EMAIL=first.member@example.com \
+            -e IASION_ACCESS_TEAM_DOMAIN=example-team.cloudflareaccess.com \
+            -e IASION_ACCESS_AUD=placeholder \
+            -e IASION_PUBLIC_ORIGIN=https://iasion.example.com \
+            -e IASION_ACCESS_CERTS_URL=http://127.0.0.1:9/certs \
+            iasion:ci
+          for _ in $(seq 30); do
+            if docker exec app /iasion health; then healthy=1; break; fi
+            sleep 1
+          done
+          docker logs app
+          test "${healthy:-0}" = 1
+          curl --fail --silent --show-error http://localhost:8080/ | grep -q '<title>Iasion</title>'
+
+  publish:
+    # Pushes the image from main only (ADR-0039, ADR-0040): ghcr.io/<repository>, tagged
+    # with the commit SHA and `main`. The only job that may write packages.
+    name: publish
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [secrets, rust, web, e2e, supply-chain, image]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - id: meta
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=sha,format=long,prefix=
+            type=raw,value=main
+      - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
