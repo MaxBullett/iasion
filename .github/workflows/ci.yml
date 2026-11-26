@@ -50,6 +50,20 @@ jobs:
   rust:
     name: rust
     runs-on: ubuntu-latest
+    services:
+      db:
+        image: postgres:18.7
+        env:
+          # A throwaway database reachable only on the runner: no superuser password.
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready --username postgres"
+          --health-interval 2s --health-timeout 5s --health-retries 30
+    env:
+      PGHOST: localhost
+      DATABASE_URL: postgres://postgres@localhost:5432/iasion
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -61,7 +75,20 @@ jobs:
           rustup toolchain install "$channel" --profile minimal --component rustfmt --component clippy
           rustup show active-toolchain
       - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+      - name: Create the database roles
+        # The same script as in development and on the host (ADR-0033, ADR-0038), with
+        # passwords generated for this run only and masked in the logs.
+        run: |
+          owner=$(openssl rand -hex 24)
+          app=$(openssl rand -hex 24)
+          echo "::add-mask::$owner"
+          echo "::add-mask::$app"
+          IASION_DB_OWNER_PASSWORD=$owner IASION_DB_APP_PASSWORD=$app sh deploy/postgres/init-roles.sh
+          echo "IASION_MIGRATE_DATABASE_URL=postgres://iasion_owner:$owner@localhost:5432/iasion" >>"$GITHUB_ENV"
       - name: Checks
         run: cargo xtask check
+      - name: Migrations on an empty database
+        # As the owner role, as on the host (ADR-0033, decision 19; ADR-0039).
+        run: cargo run --quiet --package iasion-server -- migrate
       - name: Tests
         run: cargo xtask test
