@@ -62,6 +62,13 @@ Needs Docker with Compose; everything else is pinned in the repository
    ([ADR-0038](docs/adr/0038-dev-environment.md)). Send it in the
    `Cf-Access-Jwt-Assertion` header, e.g. to `GET /api/session`. Right after the key
    pair is created, the app may take a minute to fetch it.
+6. The frontend ([ADR-0043](docs/adr/0043-frontend-tooling.md)), in `web/`:
+   `pnpm install`, then `pnpm dev` serves it on port 5173 and forwards `/api` to the
+   app with a dev token. `pnpm run build` puts it into `web/dist`, which `serve` serves
+   on port 8080. `cargo xtask web-check` runs what the `web` job runs.
+7. End-to-end tests: `pnpm exec playwright install chromium firefox` once, then
+   `pnpm exec playwright test` in `web/` against a migrated database and `access-dev`,
+   after `pnpm run build`.
 
 ## License
 
