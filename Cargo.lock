@@ -732,6 +732,7 @@ dependencies = [
  "iasion-app",
  "jsonwebtoken",
  "rsa",
+ "serde",
  "serde_json",
  "tokio",
  "tower",

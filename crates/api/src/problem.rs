@@ -22,3 +22,27 @@ pub const UNSUPPORTED_MEDIA_TYPE: &str = "/problems/unsupported-media-type";
 /// 503: no valid Access key is available, so nothing can be verified and nothing is
 /// served (ADR-0037, decision 6).
 pub const ACCESS_KEYS_UNAVAILABLE: &str = "/problems/access-keys-unavailable";
+
+/// 503: the installation's status could not be read from the database.
+pub const DATABASE_UNAVAILABLE: &str = "/problems/database-unavailable";
+
+/// A problem response with its `type`, `title` and `status`, and nothing that comes
+/// from the request.
+pub(crate) fn response(
+    status: axum::http::StatusCode,
+    problem_type: &'static str,
+    title: &'static str,
+) -> axum::response::Response {
+    use axum::response::IntoResponse;
+    let body = serde_json::json!({
+        "type": problem_type,
+        "title": title,
+        "status": status.as_u16(),
+    });
+    (
+        status,
+        [(axum::http::header::CONTENT_TYPE, CONTENT_TYPE)],
+        body.to_string(),
+    )
+        .into_response()
+}
