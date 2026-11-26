@@ -1,4 +1,4 @@
-# Pin to a specific version once the first crate exists.
+# Pinned in the walking skeleton (ADR-0034, decision 11). Update in a change of its own.
 [toolchain]
-channel = "stable"
+channel = "1.100.0"
 components = ["rustfmt", "clippy"]

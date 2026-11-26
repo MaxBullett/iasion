@@ -1,0 +1,12 @@
+# Workspace clippy configuration (ADR-0034).
+
+allow-unwrap-in-tests = true
+allow-expect-in-tests = true
+
+# Functions that read the clock or produce randomness. Only `app` and `server` allow
+# them (ADR-0034, decision 6). When a dependency brings its own, add it here in the
+# same change.
+disallowed-methods = [
+  { path = "std::time::SystemTime::now", reason = "domain code never reads the clock; take the time as an input (docs/conventions.md)" },
+  { path = "std::time::Instant::now", reason = "domain code never reads the clock; take the time as an input (docs/conventions.md)" },
+]

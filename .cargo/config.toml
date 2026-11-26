@@ -1,0 +1,3 @@
+# `cargo xtask <command>`: the one entry point for developers and CI (ADR-0038).
+[alias]
+xtask = "run --quiet --package xtask --"
