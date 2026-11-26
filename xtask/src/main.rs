@@ -2,8 +2,10 @@
 //! (ADR-0038).
 
 mod deps;
+mod migrations;
 
 use std::env;
+use std::fs;
 use std::process::{Command, ExitCode};
 
 /// Context crates, built and tested with their `postgres` feature off (ADR-0034,
@@ -21,6 +23,7 @@ commands:
   check     format, clippy, dependency edges, context crates without `postgres`
   test      all tests of the workspace with all features
   deps      dependency edges against the context map (ADR-0034, ADR-0035)
+  migrations  migration names, and one schema per migration (ADR-0033)
   features  build and test each context crate with `postgres` off (ADR-0034)
   install-hooks  use the versioned git hooks in .githooks (ADR-0041)
   hooks-test     run the tests of the git hooks (needs Docker or Betterleaks)";
@@ -31,6 +34,7 @@ fn main() -> ExitCode {
         Some("check") => check(),
         Some("test") => test(),
         Some("deps") => deps(),
+        Some("migrations") => migrations(),
         Some("features") => features(),
         Some("install-hooks") => install_hooks(),
         Some("hooks-test") => run("sh", &[".githooks/test.sh"]),
@@ -57,6 +61,7 @@ fn check() -> Result<(), String> {
         "warnings",
     ])?;
     deps()?;
+    migrations()?;
     features()
 }
 
@@ -82,6 +87,29 @@ fn deps() -> Result<(), String> {
         Ok(())
     } else {
         Err(format!("deps:\n  {}", found.join("\n  ")))
+    }
+}
+
+fn migrations() -> Result<(), String> {
+    let entries = fs::read_dir(migrations::DIRECTORY)
+        .map_err(|error| format!("migrations: {}: {error}", migrations::DIRECTORY))?;
+    let mut found = Vec::new();
+    let mut count = 0;
+    for entry in entries {
+        let path = entry.map_err(|error| error.to_string())?.path();
+        let name = path
+            .file_name()
+            .map(|n| n.to_string_lossy().into_owned())
+            .unwrap_or_default();
+        let sql = fs::read_to_string(&path).map_err(|error| format!("{name}: {error}"))?;
+        found.extend(migrations::problems(&name, &sql));
+        count += 1;
+    }
+    if found.is_empty() {
+        println!("migrations: {count} migrations, each in its own schema");
+        Ok(())
+    } else {
+        Err(format!("migrations:\n  {}", found.join("\n  ")))
     }
 }
 

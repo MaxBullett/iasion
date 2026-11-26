@@ -1,0 +1,5 @@
+# Migrations are hashed when applied; line endings must not differ between platforms
+# (ADR-0033, decision 17). Shell scripts must keep LF to run.
+crates/migrations/migrations/*.sql text eol=lf
+.githooks/* text eol=lf
+*.sh text eol=lf
