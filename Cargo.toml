@@ -13,14 +13,31 @@ publish = false
 # Internal crates are added here as `iasion-<name> = { path = "crates/<name>" }` when
 # the first crate depends on them. Which may depend on which is checked by
 # `cargo xtask deps` against the context map (ADR-0034, decision 7).
+iasion-app = { path = "crates/app" }
 iasion-migrations = { path = "crates/migrations" }
 
 # External crates, one version each (ADR-0034, decision 9).
+axum = "0.8.9"
+http = "1"
+http-body-util = "0.1"
+# Access tokens (ADR-0037). RustCrypto as the only backend: no C toolchain in the build.
+jsonwebtoken = { version = "12.0.0", default-features = false, features = ["rust_crypto"] }
+rsa = "0.10"
 serde_json = "1"
 # Plain SQL checked at compile time, no ORM; no TLS, the database is only reachable on
 # the private network (ADR-0033, ADR-0040).
 sqlx = { version = "0.9.1", default-features = false, features = ["runtime-tokio", "postgres", "macros", "migrate", "tls-none"] }
 tokio = { version = "1.54", features = ["macros", "rt-multi-thread"] }
+tower = { version = "0.5", features = ["util"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["fmt"] }
+
+# RSA key generation in tests and in `cargo xtask dev-token` is slow without
+# optimisation.
+[profile.dev.package.rsa]
+opt-level = 3
+[profile.dev.package.crypto-bigint]
+opt-level = 3
 
 [workspace.lints.rust]
 unsafe_code = "forbid"
