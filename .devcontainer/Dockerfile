@@ -36,5 +36,12 @@ RUN ln -s ../lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
     && npm install --global --no-fund --no-audit "pnpm@${PNPM_VERSION}" \
     && node --version && pnpm --version
 
+# The system libraries Playwright's Chromium and Firefox need (ADR-0043). The browsers
+# themselves are downloaded on demand into the user's cache: `pnpm exec playwright
+# install chromium firefox` in web/. The version matches @playwright/test.
+ARG PLAYWRIGHT_VERSION=1.65.1
+RUN npx --yes "playwright@${PLAYWRIGHT_VERSION}" install-deps chromium firefox \
+    && rm -rf /var/lib/apt/lists/* /root/.npm
+
 RUN useradd --create-home --uid 1000 dev && chown -R dev /usr/local/cargo
 USER dev
