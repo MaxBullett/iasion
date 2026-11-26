@@ -1,0 +1,44 @@
+#!/bin/sh
+# Scans every commit about to be pushed for secrets and private terms, which also
+# catches commits made with --no-verify (ADR-0039, ADR-0041).
+. "$(git rev-parse --show-toplevel)/.githooks/lib.sh"
+
+remote=$1
+zero=0000000000000000000000000000000000000000
+if terms_load; then terms=1; else terms=0; fi
+
+# git passes the refs on stdin; nothing below may read it.
+cat >"$TMP/refs"
+
+while read -r local_ref local_sha _remote_ref remote_sha; do
+    [ "$local_sha" = "$zero" ] && continue
+    if [ "$remote_sha" = "$zero" ]; then
+        range="$local_sha --not --remotes=$remote"
+    else
+        range="$remote_sha..$local_sha"
+    fi
+    # shellcheck disable=SC2086
+    if ! git rev-list $range >"$TMP/commits"; then
+        fail "cannot list the commits of $local_ref"
+        continue
+    fi
+    [ -s "$TMP/commits" ] || continue
+
+    betterleaks_run git --log-opts="$range" . </dev/null >&2 ||
+        fail "possible secret in the commits of $local_ref"
+
+    [ "$terms" -eq 1 ] || continue
+    while read -r commit; do
+        short=$(git rev-parse --short "$commit")
+        # shellcheck disable=SC2086
+        git diff-tree --root -r -p $DIFF_OPTIONS "$commit" | added_lines >"$TMP/added"
+        report_lines "commit $short" "$TMP/added"
+        git diff-tree --root -r --no-commit-id --name-only --diff-filter=ACMR "$commit" \
+            >"$TMP/paths"
+        report_paths "commit $short" "$TMP/paths"
+        git log -1 --format=%B "$commit" >"$TMP/message"
+        report_message "the message of commit $short" "$TMP/message"
+    done <"$TMP/commits"
+done <"$TMP/refs"
+
+finish

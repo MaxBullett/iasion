@@ -1,0 +1,16 @@
+#!/bin/sh
+# Scans the staged changes for secrets and private terms (ADR-0039, ADR-0041).
+. "$(git rev-parse --show-toplevel)/.githooks/lib.sh"
+
+betterleaks_run git --pre-commit --staged . </dev/null >&2 ||
+    fail "possible secret in the staged changes"
+
+if terms_load; then
+    # shellcheck disable=SC2086
+    git diff --cached $DIFF_OPTIONS | added_lines >"$TMP/added"
+    report_lines "the staged changes" "$TMP/added"
+    git diff --cached --name-only --diff-filter=ACMR >"$TMP/paths"
+    report_paths "the staged changes" "$TMP/paths"
+fi
+
+finish

@@ -1,0 +1,29 @@
+[workspace]
+resolver = "3"
+members = ["crates/*", "xtask"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.100"
+license = "AGPL-3.0-or-later"
+publish = false
+
+[workspace.dependencies]
+# Internal crates are added here as `iasion-<name> = { path = "crates/<name>" }` when
+# the first crate depends on them. Which may depend on which is checked by
+# `cargo xtask deps` against the context map (ADR-0034, decision 7).
+
+# External crates, one version each (ADR-0034, decision 9).
+serde_json = "1"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+# No unwrap or expect outside tests (docs/conventions.md); clippy.toml allows them in
+# tests (ADR-0034, decision 10).
+unwrap_used = "deny"
+expect_used = "deny"
+# Clock and randomness only in `app` and `server` (ADR-0034, decision 6).
+disallowed_methods = "deny"

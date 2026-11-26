@@ -1,0 +1,14 @@
+#!/bin/sh
+# Scans the commit message for secrets and private terms (ADR-0039, ADR-0041).
+. "$(git rev-parse --show-toplevel)/.githooks/lib.sh"
+
+# Without git's comment lines, which list file names rather than the message.
+git stripspace --strip-comments <"$1" >"$TMP/message"
+
+betterleaks_run stdin <"$TMP/message" >&2 || fail "possible secret in the commit message"
+
+if terms_load; then
+    report_message "the commit message" "$TMP/message"
+fi
+
+finish

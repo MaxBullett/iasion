@@ -1,0 +1,67 @@
+# CI (ADR-0039). Job names are the required checks of the main branch ruleset; a job
+# added here must be added there by hand. No path filters: a skipped required job
+# would leave pull requests waiting.
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  secrets:
+    name: secrets
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Scan every commit for secrets
+        # The same pinned Betterleaks image as the hooks, read from the hooks' library
+        # (ADR-0041).
+        env:
+          EVENT: ${{ github.event_name }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+          PUSH_BEFORE: ${{ github.event.before }}
+          PUSH_AFTER: ${{ github.sha }}
+        run: |
+          image=$(sed -n 's/^BETTERLEAKS_IMAGE=//p' .githooks/lib.sh)
+          if [ "$EVENT" = pull_request ]; then
+            range="$PR_BASE..$PR_HEAD"
+          elif [ "$PUSH_BEFORE" = 0000000000000000000000000000000000000000 ]; then
+            range="$PUSH_AFTER"
+          else
+            range="$PUSH_BEFORE..$PUSH_AFTER"
+          fi
+          docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/repo" -w /repo "$image" \
+            git --log-opts="$range" --redact --no-banner .
+      - name: Test the git hooks
+        run: sh .githooks/test.sh
+
+  rust:
+    name: rust
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install the pinned toolchain
+        # The version comes from rust-toolchain.toml, as in development (ADR-0038).
+        run: |
+          channel=$(sed -n 's/^channel = "\(.*\)"$/\1/p' rust-toolchain.toml)
+          rustup toolchain install "$channel" --profile minimal --component rustfmt --component clippy
+          rustup show active-toolchain
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+      - name: Checks
+        run: cargo xtask check
+      - name: Tests
+        run: cargo xtask test
