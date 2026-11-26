@@ -2,6 +2,7 @@
 //! (ADR-0038).
 
 mod deps;
+mod dev_access;
 mod migrations;
 
 use std::env;
@@ -25,6 +26,8 @@ commands:
   deps      dependency edges against the context map (ADR-0034, ADR-0035)
   migrations  migration names, and one schema per migration (ADR-0033)
   features  build and test each context crate with `postgres` off (ADR-0034)
+  dev-token [--email <email>]  print a dev Access token, by default for the setup
+                 email; creates the dev key pair on first use (ADR-0038)
   install-hooks  use the versioned git hooks in .githooks (ADR-0041)
   hooks-test     run the tests of the git hooks (needs Docker or Betterleaks)";
 
@@ -36,6 +39,7 @@ fn main() -> ExitCode {
         Some("deps") => deps(),
         Some("migrations") => migrations(),
         Some("features") => features(),
+        Some("dev-token") => dev_access::dev_token(&args[1..]),
         Some("install-hooks") => install_hooks(),
         Some("hooks-test") => run("sh", &[".githooks/test.sh"]),
         _ => Err(USAGE.to_string()),
