@@ -5,3 +5,4 @@ crates/migrations/migrations/*.sql text eol=lf
 *.sh text eol=lf
 # Generated, compared byte for byte with what the code generates (ADR-0036).
 crates/api/openapi.json text eol=lf
+web/src/api/generated/* text eol=lf

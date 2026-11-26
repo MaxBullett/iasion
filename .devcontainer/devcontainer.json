@@ -5,7 +5,7 @@
   "workspaceFolder": "/workspace",
   "shutdownAction": "stopCompose",
   "initializeCommand": "mkdir -p .dev/access/public",
-  "forwardPorts": [8080],
+  "forwardPorts": [8080, 5173],
   "remoteUser": "dev",
   "postCreateCommand": "git config core.hooksPath .githooks"
 }

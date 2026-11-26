@@ -25,5 +25,16 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends postgresql-client \
     && rm -rf /var/lib/apt/lists/*
 
+# Node and pnpm for the frontend (ADR-0038, ADR-0043). The versions match
+# .node-version and the packageManager field of web/package.json; update them
+# together. Node no longer ships corepack, so pnpm is installed at its pinned version.
+COPY --from=node:26.13.1-trixie-slim /usr/local/bin/node /usr/local/bin/node
+COPY --from=node:26.13.1-trixie-slim /usr/local/lib/node_modules /usr/local/lib/node_modules
+ARG PNPM_VERSION=12.23.0
+RUN ln -s ../lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
+    && ln -s ../lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx \
+    && npm install --global --no-fund --no-audit "pnpm@${PNPM_VERSION}" \
+    && node --version && pnpm --version
+
 RUN useradd --create-home --uid 1000 dev && chown -R dev /usr/local/cargo
 USER dev

@@ -1,0 +1,12 @@
+# pnpm settings for web/, a single package (ADR-0043, decision 7).
+
+# Versions younger than three days (in minutes) are not installed, so that a hijacked
+# release is usually withdrawn before it reaches the lockfile. For an urgent fix, list
+# the package under minimumReleaseAgeExclude in the change that needs it.
+minimumReleaseAge: 4320
+
+# A version published with weaker provenance than the ones before it is refused.
+trustPolicy: no-downgrade
+
+# Install scripts of dependencies run only for the packages listed here.
+allowBuilds: {}
