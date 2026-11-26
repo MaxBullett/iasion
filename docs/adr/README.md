@@ -48,3 +48,5 @@ supersedes the old one and update the old one's status.
 | [0038](0038-dev-environment.md) | Dev environment: Docker Compose and a devcontainer, cargo xtask as the entry point | Accepted |
 | [0039](0039-ci-and-secret-scanning.md) | CI and secret scanning: GitHub Actions, Betterleaks, local private-terms checks | Accepted |
 | [0040](0040-deployment.md) | Deployment: one image, Podman on a dedicated VM, pulled updates with rollback | Accepted |
+| [0041](0041-git-hooks-in-shell.md) | Git hooks are shell scripts that need only git, grep and Betterleaks or Docker | Accepted |
+| [0042](0042-license-agpl-3-or-later.md) | The license is AGPL-3.0-or-later | Accepted |
