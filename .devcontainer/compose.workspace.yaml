@@ -8,6 +8,10 @@ services:
     working_dir: /workspace
     volumes:
       - .:/workspace:cached
+    # The app and the Vite dev server, from the host's browser only.
+    ports:
+      - "127.0.0.1:8080:8080"
+      - "127.0.0.1:5173:5173"
     # The settings of .env; the services are reached by their names here.
     env_file: .env
     environment:
