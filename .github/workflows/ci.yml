@@ -113,3 +113,107 @@ jobs:
           test "${healthy:-0}" = 1
       - name: Tests
         run: cargo xtask test
+
+  web:
+    name: web
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # pnpm at the version in web/package.json, Node at .node-version (ADR-0043).
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+        with:
+          package_json_file: web/package.json
+          cache: true
+          cache_dependency_path: web/pnpm-lock.yaml
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+          package-manager-cache: false
+      - name: Install the pinned toolchain
+        # For `cargo xtask`, the one entry point (ADR-0038).
+        run: |
+          channel=$(sed -n 's/^channel = "\(.*\)"$/\1/p' rust-toolchain.toml)
+          rustup toolchain install "$channel" --profile minimal
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+      - name: Checks
+        # Frozen install, lint, format, types, Vitest, client drift (ADR-0043).
+        run: cargo xtask web-check
+
+  e2e:
+    name: e2e
+    runs-on: ubuntu-latest
+    services:
+      db:
+        image: postgres:18.7
+        env:
+          # A throwaway database reachable only on the runner: no superuser password.
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready --username postgres"
+          --health-interval 2s --health-timeout 5s --health-retries 30
+    env:
+      PGHOST: localhost
+      # Placeholder settings of a development instance (.env.example).
+      IASION_SETUP_EMAIL: first.member@example.com
+      IASION_ACCESS_TEAM_DOMAIN: example-team.cloudflareaccess.com
+      IASION_ACCESS_AUD: placeholder
+      IASION_PUBLIC_ORIGIN: http://localhost:8080
+      IASION_ACCESS_CERTS_URL: http://localhost:8790/certs
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+        with:
+          package_json_file: web/package.json
+          cache: true
+          cache_dependency_path: web/pnpm-lock.yaml
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+          package-manager-cache: false
+      - name: Install the pinned toolchain
+        run: |
+          channel=$(sed -n 's/^channel = "\(.*\)"$/\1/p' rust-toolchain.toml)
+          rustup toolchain install "$channel" --profile minimal
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+      - name: Create the database roles
+        # As in the rust job: the init script, with passwords for this run only.
+        run: |
+          owner=$(openssl rand -hex 24)
+          app=$(openssl rand -hex 24)
+          echo "::add-mask::$owner"
+          echo "::add-mask::$app"
+          IASION_DB_OWNER_PASSWORD=$owner IASION_DB_APP_PASSWORD=$app sh deploy/postgres/init-roles.sh
+          echo "IASION_MIGRATE_DATABASE_URL=postgres://iasion_owner:$owner@localhost:5432/iasion" >>"$GITHUB_ENV"
+          echo "IASION_DATABASE_URL=postgres://iasion_app:$app@localhost:5432/iasion" >>"$GITHUB_ENV"
+      - name: Build
+        run: |
+          pnpm --dir web install --frozen-lockfile
+          pnpm --dir web exec playwright install --with-deps chromium firefox
+          pnpm --dir web run build
+          cargo build --quiet --package iasion-server --package xtask
+      - name: Migrate, and stand in for Access
+        # The dev key pair is created for this run only; access-dev is the same image
+        # as in compose.yaml (ADR-0038, ADR-0043).
+        run: |
+          cargo run --quiet --package iasion-server -- migrate
+          cargo xtask dev-token >/dev/null
+          docker run --detach --name access-dev --publish 127.0.0.1:8790:8080 \
+            --volume "$PWD/.dev/access/public:/srv:ro" busybox:1.37.0 httpd -f -p 8080 -h /srv
+      - name: End-to-end tests
+        # Playwright starts `iasion serve` (web/playwright.config.ts).
+        run: pnpm --dir web exec playwright test
+      - name: Keep the traces
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: playwright
+          path: |
+            web/test-results/
+            web/playwright-report/
+          retention-days: 7
