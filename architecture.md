@@ -142,6 +142,7 @@ live in Classification.
 | CI and secret scanning | GitHub Actions on GitHub-hosted runners, Betterleaks, local private-terms hooks, cargo-deny | [ADR-0039](docs/adr/0039-ci-and-secret-scanning.md) |
 | Deployment | One image; Podman on a dedicated VM; pulled updates with rollback; Cloudflare Tunnel | [ADR-0040](docs/adr/0040-deployment.md) |
 | Frontend | Vue 3, TypeScript | [ADR-0003](docs/adr/0003-vue-frontend.md) |
+| Frontend tooling | Vite, vue-router, ESLint and Prettier, Vitest, Playwright (Chromium, Firefox); served by `iasion serve` | [ADR-0043](docs/adr/0043-frontend-tooling.md) |
 | Frontend delivery | Responsive web app, PWA, no native or WASM | [ADR-0008](docs/adr/0008-responsive-web-no-native.md) |
 | Plugin mechanism | Compiled-in crates | [ADR-0005](docs/adr/0005-plugins-as-compiled-crates.md) |
 | Workspace layout | One crate per context, persistence behind a feature, edges checked against the context map | [ADR-0034](docs/adr/0034-workspace-layout.md) |
