@@ -4,6 +4,7 @@
 mod deps;
 mod dev_access;
 mod migrations;
+mod quadlets;
 mod supply_chain;
 mod web;
 
@@ -28,6 +29,7 @@ commands:
   test      all tests of the workspace with all features
   deps      dependency edges against the context map (ADR-0034, ADR-0035)
   migrations  migration names, and one schema per migration (ADR-0033)
+  quadlets  the units in deploy/quadlets (ADR-0040)
   features  build and test each context crate with `postgres` off (ADR-0034)
   openapi   regenerate crates/api/openapi.json from the code, and the web client
             from it (ADR-0036)
@@ -46,6 +48,7 @@ fn main() -> ExitCode {
         Some("test") => test(),
         Some("deps") => deps(),
         Some("migrations") => migrations(),
+        Some("quadlets") => quadlets(),
         Some("features") => features(),
         Some("openapi") => openapi(false).and_then(|()| web::generate_client()),
         Some("web-check") => web::check(),
@@ -77,6 +80,7 @@ fn check() -> Result<(), String> {
     ])?;
     deps()?;
     migrations()?;
+    quadlets()?;
     features()?;
     openapi(true)
 }
@@ -165,6 +169,35 @@ fn migrations() -> Result<(), String> {
         Ok(())
     } else {
         Err(format!("migrations:\n  {}", found.join("\n  ")))
+    }
+}
+
+fn quadlets() -> Result<(), String> {
+    let entries = fs::read_dir(quadlets::DIRECTORY)
+        .map_err(|error| format!("quadlets: {}: {error}", quadlets::DIRECTORY))?;
+    let mut found = Vec::new();
+    let mut count = 0;
+    for entry in entries {
+        let path = entry.map_err(|error| error.to_string())?.path();
+        if path
+            .extension()
+            .is_none_or(|extension| extension != "container")
+        {
+            continue;
+        }
+        let name = path
+            .file_name()
+            .map(|n| n.to_string_lossy().into_owned())
+            .unwrap_or_default();
+        let text = fs::read_to_string(&path).map_err(|error| format!("{name}: {error}"))?;
+        found.extend(quadlets::problems(&name, &text));
+        count += 1;
+    }
+    if found.is_empty() {
+        println!("quadlets: {count} containers, health checks run without a shell");
+        Ok(())
+    } else {
+        Err(format!("quadlets:\n  {}", found.join("\n  ")))
     }
 }
 

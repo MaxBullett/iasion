@@ -108,6 +108,8 @@ its user data. The copy holds secrets: never commit it. Follow the setup in
 ```sh
 podman ps                                   # iasion-db (healthy), iasion-app, iasion-cloudflared
 podman exec iasion-app /iasion health       # health: ok
+sleep 120; podman ps --filter name=iasion-app   # still Up, and (healthy): Podman's own check passes
+systemctl show iasion-app -p NRestarts      # 0, and it stays there
 systemctl list-timers iasion-backup.timer podman-auto-update.timer
 journalctl -u iasion-cloudflared -n 20      # the tunnel's connections
 ```

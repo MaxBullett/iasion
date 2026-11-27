@@ -15,7 +15,9 @@ Network=iasion.network
 EnvironmentFile=/etc/iasion/iasion.env
 Secret=iasion-database-url,type=env,target=IASION_DATABASE_URL
 Notify=true
-HealthCmd=/iasion health
+# The array form runs the binary directly. A plain command would run through
+# /bin/sh, which the distroless image does not have, so every check would fail.
+HealthCmd=["/iasion", "health"]
 HealthInterval=30s
 HealthOnFailure=kill
 ReadOnly=true
@@ -24,6 +26,11 @@ DropCapability=all
 
 [Service]
 Restart=on-failure
+# A crash loop backs off from 5 seconds to 10 minutes between attempts; each start
+# runs a backup and the migrations first.
+RestartSec=5s
+RestartSteps=8
+RestartMaxDelaySec=10min
 TimeoutStartSec=300
 
 [Install]
