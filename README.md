@@ -9,8 +9,9 @@ should go.
 
 ## Status
 
-Pre-alpha. Nothing runs yet. The specification of the first release is done; the walking
-skeleton is being built.
+Pre-alpha. The walking skeleton runs: a page that shows who is signed in, from the
+browser through the API to the database, deployable behind Cloudflare Access. The
+first release's stories come next.
 
 ## What it is
 
@@ -34,6 +35,7 @@ skeleton is being built.
 | [docs/releases/](docs/releases/) | Release definitions |
 | [docs/adr/](docs/adr/) | Architecture decision records |
 | [docs/open-questions.md](docs/open-questions.md) | Unresolved decisions |
+| [docs/deployment.md](docs/deployment.md) | Running an instance: setup, updates, backups |
 | [AGENTS.md](AGENTS.md) | Rules for AI coding agents (also `CLAUDE.md`) |
 
 ## Development approach

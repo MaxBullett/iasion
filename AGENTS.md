@@ -183,6 +183,8 @@ Refs: <IDs>
 
 ## Status
 
-Pre-code. R1 is defined (`docs/releases/r1.md`), its event storming is closed
-(`docs/event-storming/r1.md`, context map in `architecture.md`), and its infrastructure
-enablers are decided (ADR-0033 to ADR-0040). Next: the walking skeleton.
+R1 is defined (`docs/releases/r1.md`), its event storming is closed
+(`docs/event-storming/r1.md`, context map in `architecture.md`), its infrastructure
+enablers are decided (ADR-0033 to ADR-0043), and the walking skeleton is built: the
+round trip from the browser to the database, CI, and the deployment
+(`docs/deployment.md`). Next: R1's stories.
