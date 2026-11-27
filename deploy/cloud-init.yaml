@@ -1,0 +1,40 @@
+#cloud-config
+# Optional first-boot setup of an Iasion VM (ADR-0040, decision 18), for a Debian 13
+# cloud image. Copy this file outside the repository, replace every <...>, and give the
+# copy to the VM as its user data. The filled-in copy holds secrets: never commit it.
+# install.sh refuses values that still contain a placeholder.
+#
+# If your platform sets the login user and SSH key through cloud-init itself, keep
+# that; otherwise add them here, e.g.:
+#   users:
+#     - name: <user>
+#       groups: [sudo]
+#       shell: /bin/bash
+#       ssh_authorized_keys: [<public key>]
+
+package_update: true
+packages:
+  - git
+  - podman
+
+write_files:
+  - path: /etc/iasion/iasion.env
+    permissions: "0644"
+    content: |
+      IASION_IMAGE=<registry>/<owner>/iasion:main
+      IASION_SETUP_EMAIL=<email allowed to run first setup>
+      IASION_ACCESS_TEAM_DOMAIN=<team>.cloudflareaccess.com
+      IASION_ACCESS_AUD=<AUD tag of the Access application>
+      IASION_PUBLIC_ORIGIN=https://<hostname of the instance>
+  - path: /etc/iasion/restic.env
+    permissions: "0600"
+    content: |
+      RESTIC_REPOSITORY=<restic repository>
+      RESTIC_PASSWORD=<restic password>
+  - path: /etc/iasion/tunnel-token
+    permissions: "0600"
+    content: <Cloudflare Tunnel token>
+
+runcmd:
+  - [git, clone, --depth, "1", "<repository URL>", /opt/iasion]
+  - [sh, /opt/iasion/deploy/install.sh]

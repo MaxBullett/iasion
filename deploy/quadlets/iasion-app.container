@@ -1,0 +1,30 @@
+# The app (ADR-0040). Pulled from the registry by `podman auto-update`; it tells
+# systemd it is ready only once it listens, so a failed start rolls back to the
+# previous image. Settings come from /etc/iasion/iasion.env, the database URL is a
+# Podman secret. No port is published.
+[Unit]
+Description=Iasion
+Requires=iasion-migrate.service
+After=iasion-migrate.service
+
+[Container]
+ContainerName=iasion-app
+Image=@IASION_IMAGE@
+AutoUpdate=registry
+Network=iasion.network
+EnvironmentFile=/etc/iasion/iasion.env
+Secret=iasion-database-url,type=env,target=IASION_DATABASE_URL
+Notify=true
+HealthCmd=/iasion health
+HealthInterval=30s
+HealthOnFailure=kill
+ReadOnly=true
+NoNewPrivileges=true
+DropCapability=all
+
+[Service]
+Restart=on-failure
+TimeoutStartSec=300
+
+[Install]
+WantedBy=multi-user.target

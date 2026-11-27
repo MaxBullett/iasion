@@ -1,0 +1,15 @@
+# Only what the image build needs; never local settings, keys or build output.
+.git/
+.dev/
+.env
+.env.*
+!.env.example
+.envrc.local
+.private-terms
+.pnpm-store/
+target/
+web/node_modules/
+web/dist/
+web/test-results/
+web/playwright-report/
+fixtures/private/

@@ -1,0 +1,9 @@
+# The nightly backup (ADR-0040, decision 12).
+[Unit]
+Description=Iasion nightly backup
+Requires=iasion-db.service
+After=iasion-db.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/lib/iasion/iasion-backup nightly

@@ -17,9 +17,11 @@ updates:
     cooldown:
       default-days: 3
 
-  # The workspace image: rust and node.
+  # The image (Dockerfile) and the workspace image: rust, node and distroless.
   - package-ecosystem: docker
-    directory: /.devcontainer
+    directories:
+      - /
+      - /.devcontainer
     schedule:
       interval: weekly
     cooldown:

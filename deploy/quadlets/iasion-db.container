@@ -1,0 +1,27 @@
+# PostgreSQL (ADR-0033, ADR-0040). The init script creates the owner and the
+# application role on the volume's first start; the passwords are Podman secrets that
+# install.sh generated.
+[Unit]
+Description=Iasion database
+
+[Container]
+ContainerName=iasion-db
+Image=docker.io/library/postgres:18.7
+Network=iasion.network
+Volume=iasion-db.volume:/var/lib/postgresql
+Volume=/usr/local/lib/iasion/init-roles.sh:/docker-entrypoint-initdb.d/10-init-roles.sh:ro
+Secret=iasion-postgres-password,type=env,target=POSTGRES_PASSWORD
+Secret=iasion-db-owner-password,type=env,target=IASION_DB_OWNER_PASSWORD
+Secret=iasion-db-app-password,type=env,target=IASION_DB_APP_PASSWORD
+HealthCmd=pg_isready --username postgres
+HealthInterval=10s
+HealthStartPeriod=30s
+# Ready for the units after it only once it accepts connections.
+Notify=healthy
+
+[Service]
+Restart=on-failure
+TimeoutStartSec=300
+
+[Install]
+WantedBy=multi-user.target
