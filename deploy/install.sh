@@ -82,6 +82,18 @@ if [ "$written" -eq 1 ]; then
 fi
 
 value() { sed -n "s/^$1=//p" "$2" | tail -n 1; }
+# restic takes anything without a backend prefix as a local path: a repository such
+# as `s3.<region>.example.com/<bucket>` would land in the backup container and vanish
+# with it, and every backup after it would fail. The env file keeps quotes literally.
+check_repository() {
+    case "$1" in
+        *'"'* | *"'"* | *' '*) fail "RESTIC_REPOSITORY in $CONF/restic.env has quotes or spaces; the file takes values literally" ;;
+        /*) ;;
+        s3:* | b2:* | sftp:* | rest:* | azure:* | gs:* | swift:* | rclone:*) ;;
+        *) fail "RESTIC_REPOSITORY in $CONF/restic.env is neither an absolute path nor a restic backend such as s3:https://<endpoint>/<bucket>/iasion" ;;
+    esac
+}
+
 require() {
     setting=$(value "$1" "$2")
     [ -n "$setting" ] || fail "$1 is empty in $2"
@@ -95,18 +107,7 @@ done
 for name in RESTIC_REPOSITORY RESTIC_PASSWORD; do
     require "$name" "$CONF/restic.env"
 done
-# restic takes anything without a backend prefix as a local path. A repository such as
-# `s3.<region>.example.com/<bucket>` would land in the backup container and vanish with
-# it, and every backup after it would fail.
-repository=$(value RESTIC_REPOSITORY "$CONF/restic.env")
-case "$repository" in
-    *'"'* | *"'"* | *' '*) fail "RESTIC_REPOSITORY in $CONF/restic.env has quotes or spaces; the file takes values literally" ;;
-esac
-case "$repository" in
-    /*) ;;
-    s3:* | b2:* | sftp:* | rest:* | azure:* | gs:* | swift:* | rclone:*) ;;
-    *) fail "RESTIC_REPOSITORY in $CONF/restic.env is neither an absolute path nor a restic backend such as s3:https://<endpoint>/<bucket>/iasion" ;;
-esac
+check_repository "$(value RESTIC_REPOSITORY "$CONF/restic.env")"
 IMAGE=$(value IASION_IMAGE "$CONF/iasion.env")
 case "$IMAGE" in
     */*/*) ;;
