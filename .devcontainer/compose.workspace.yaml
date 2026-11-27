@@ -1,26 +1,119 @@
-# The devcontainer's workspace service, added to ../compose.yaml (ADR-0038). Relative
+# The toolchain services, added to ../compose.yaml: the devcontainer's workspace
+# (ADR-0038), and the app in development, which `./dev up` starts (ADR-0044). Relative
 # paths are resolved against the repository root, the directory of the first file.
+
+# What every toolchain service shares: the workspace image, the repository, the
+# settings of .env (the services are reached by their names here), and the caches.
+x-toolchain: &toolchain
+  image: iasion-workspace
+  working_dir: /workspace
+  env_file: .env
+  environment: &environment
+    IASION_ACCESS_CERTS_URL: http://access-dev:8080/certs
+    DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@db:5432/iasion
+    IASION_DATABASE_URL: postgres://iasion_app:${IASION_DB_APP_PASSWORD}@db:5432/iasion
+    IASION_MIGRATE_DATABASE_URL: postgres://iasion_owner:${IASION_DB_OWNER_PASSWORD}@db:5432/iasion
+  volumes:
+    - .:/workspace:cached
+    - cargo-registry:/usr/local/cargo/registry
+    - cargo-git:/usr/local/cargo/git
+    - dev-cache:/home/dev/.cache
+    - pnpm-store:/home/dev/.local/share/pnpm
+  depends_on:
+    db:
+      condition: service_healthy
+    access-dev:
+      condition: service_started
+
+# The app's services build into a target directory of their own, so that checks in
+# the workspace neither wait for them nor rebuild what they built.
+x-app-environment: &app-environment
+  <<: *environment
+  CARGO_TARGET_DIR: /workspace/target/dev
+
 services:
   workspace:
+    <<: *toolchain
     build:
       context: .devcontainer
     command: sleep infinity
-    working_dir: /workspace
-    volumes:
-      - .:/workspace:cached
-    # The app and the Vite dev server, from the host's browser only.
-    ports:
-      - "127.0.0.1:8080:8080"
-      - "127.0.0.1:5173:5173"
-    # The settings of .env; the services are reached by their names here.
-    env_file: .env
     environment:
-      IASION_ACCESS_CERTS_URL: http://access-dev:8080/certs
-      DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@db:5432/iasion
-      IASION_DATABASE_URL: postgres://iasion_app:${IASION_DB_APP_PASSWORD}@db:5432/iasion
-      IASION_MIGRATE_DATABASE_URL: postgres://iasion_owner:${IASION_DB_OWNER_PASSWORD}@db:5432/iasion
+      <<: *environment
+      # `./dev` refuses to run in here (ADR-0044, decision 8).
+      IASION_WORKSPACE: "1"
+
+  # One shot before the app: the dev key pair that access-dev serves.
+  prepare:
+    <<: *toolchain
+    profiles: [app]
+    pull_policy: never
+    environment: *app-environment
+    command: ["sh", "-c", "cargo xtask dev-token >/dev/null"]
+
+  # The API on port 8080: migrates and serves, and does both again on every change to
+  # the Rust code, Cargo's files or a migration. A failed build leaves it stopped, with
+  # the error in its log, until the next change.
+  api:
+    <<: *toolchain
+    profiles: [app]
+    pull_policy: never
+    environment: *app-environment
     depends_on:
       db:
         condition: service_healthy
       access-dev:
         condition: service_started
+      prepare:
+        condition: service_completed_successfully
+    ports:
+      - "127.0.0.1:8080:8080"
+    command:
+      - sh
+      - -c
+      - >-
+        exec watchexec --restart --debounce 500ms $${IASION_DEV_POLL:+--poll 1s}
+        --watch-non-recursive . --watch crates --exts rs,toml,lock,sql --
+        'cargo run --quiet --package iasion-server -- migrate
+        && exec cargo run --quiet --package iasion-server -- serve'
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "-o", "/dev/null", "http://127.0.0.1:8081/health"]
+      interval: 2s
+      timeout: 5s
+      # The first build takes minutes.
+      start_period: 30m
+      start_interval: 2s
+
+  # The frontend on port 5173, with Vite's hot reload; `/api` goes to the API with a
+  # dev token. A change to the dependencies installs them and starts it again.
+  web:
+    <<: *toolchain
+    profiles: [app]
+    pull_policy: never
+    environment:
+      <<: *app-environment
+      IASION_DEV_BACKEND: http://api:8080
+    depends_on:
+      prepare:
+        condition: service_completed_successfully
+    ports:
+      - "127.0.0.1:5173:5173"
+    command:
+      - sh
+      - -c
+      - >-
+        exec watchexec --restart --debounce 500ms $${IASION_DEV_POLL:+--poll 1s}
+        --watch-non-recursive web --filter package.json --filter pnpm-lock.yaml --
+        'pnpm --dir web install --frozen-lockfile --config.confirm-modules-purge=false
+        && exec pnpm --dir web dev --host 0.0.0.0'
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "-o", "/dev/null", "http://127.0.0.1:5173/"]
+      interval: 2s
+      timeout: 5s
+      start_period: 10m
+      start_interval: 2s
+
+volumes:
+  cargo-registry:
+  cargo-git:
+  dev-cache:
+  pnpm-store:

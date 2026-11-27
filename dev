@@ -1,0 +1,133 @@
+#!/bin/sh
+# The development environment from the host (ADR-0044). POSIX sh; needs Docker with
+# Compose. `./dev help` lists the commands. It only runs Compose and forwards into the
+# workspace: whatever CI runs is a `cargo xtask` command.
+set -eu
+
+cd "$(dirname "$0")"
+
+usage() {
+    cat <<'USAGE'
+Usage: ./dev <command>
+
+  up                  Start everything: the database, access-dev, the API on
+                      http://localhost:8080 and the frontend on http://localhost:5173.
+                      Both rebuild and reload on change.
+  down [--wipe]       Stop everything. The dev database stays; --wipe removes it.
+  restart [service]   Restart a service, api by default, e.g. after changing .env.
+  status              What runs.
+  logs [service]      The logs of every service, or of one, followed.
+  psql                psql on the dev database, as the application role.
+  token [--email <e>] A dev Access token (cargo xtask dev-token).
+  check               cargo xtask check
+  test                cargo xtask test
+  e2e [args]          Migrate, build the frontend and run the Playwright tests.
+  x <args>            Any cargo xtask command, e.g. ./dev x openapi
+  sh [args]           A shell in the workspace, or bash with these arguments.
+USAGE
+}
+
+say() { printf 'dev: %s\n' "$*"; }
+fail() { printf 'dev: %s\n' "$*" >&2; exit 1; }
+
+if [ -n "${IASION_WORKSPACE:-}" ]; then
+    fail "this is the workspace container, which has no Docker; run cargo xtask here (with no command, it lists them), and ./dev on the host"
+fi
+command -v docker >/dev/null 2>&1 || fail "needs Docker with Compose: https://docs.docker.com/get-started/get-docker/"
+
+compose() {
+    docker compose -f compose.yaml -f .devcontainer/compose.workspace.yaml --profile app "$@"
+}
+
+# What has to exist before Compose starts anything: the settings, and the directory
+# access-dev serves, which Docker would otherwise create as root.
+prepare_host() {
+    if [ ! -f .env ]; then
+        cp .env.example .env
+        say "created .env from .env.example; its placeholder values work for development"
+    fi
+    mkdir -p .dev/access/public
+}
+
+# The workspace container, started if it is not running, for the commands run in it.
+in_workspace() {
+    prepare_host
+    if [ -z "$(compose ps --status running --quiet workspace)" ]; then
+        compose build --quiet workspace
+        compose up --detach --wait workspace
+    fi
+    if [ -t 0 ] && [ -t 1 ]; then
+        compose exec workspace "$@"
+    else
+        compose exec -T workspace "$@"
+    fi
+}
+
+command=${1:-help}
+[ "$#" -gt 0 ] && shift
+
+case "$command" in
+    up)
+        [ "$#" -eq 0 ] || fail "up takes no arguments"
+        prepare_host
+        compose build --quiet workspace
+        say "starting; the first build of the API takes a few minutes (./dev logs api)"
+        if ! compose up --detach --remove-orphans --wait --wait-timeout 1800; then
+            compose ps --all
+            fail "not everything started; ./dev logs <service> shows why"
+        fi
+        say "up: the app on http://localhost:5173, with the built frontend on http://localhost:8080"
+        say "it rebuilds and reloads on change; ./dev logs api shows a failed build"
+        ;;
+    down)
+        case "${1:-}" in
+            '') compose down ;;
+            --wipe)
+                compose down
+                docker volume rm --force iasion_db-data >/dev/null
+                say "removed the dev database; ./dev up creates a new one"
+                ;;
+            *) fail "down takes only --wipe" ;;
+        esac
+        ;;
+    restart)
+        [ "$#" -le 1 ] || fail "restart takes one service"
+        compose restart "${1:-api}"
+        ;;
+    status)
+        compose ps --all
+        ;;
+    logs)
+        compose logs --follow --tail 100 "$@"
+        ;;
+    psql)
+        # The application role, with the grants the app has (ADR-0038). The URL expands
+        # in the workspace, where it is set.
+        # shellcheck disable=SC2016
+        in_workspace sh -c 'exec psql "$IASION_DATABASE_URL"'
+        ;;
+    token)
+        in_workspace cargo xtask dev-token "$@"
+        ;;
+    check | test)
+        in_workspace cargo xtask "$command" "$@"
+        ;;
+    e2e)
+        # shellcheck disable=SC2016
+        in_workspace sh -c 'cargo run --quiet --package iasion-server -- migrate && cd web && pnpm install --frozen-lockfile --config.confirm-modules-purge=false && pnpm exec playwright install chromium firefox && pnpm run build && pnpm exec playwright test "$@"' e2e "$@"
+        ;;
+    x)
+        [ "$#" -gt 0 ] || fail "x needs a cargo xtask command, e.g. ./dev x openapi"
+        in_workspace cargo xtask "$@"
+        ;;
+    sh)
+        in_workspace bash "$@"
+        ;;
+    help | -h | --help)
+        usage
+        ;;
+    *)
+        usage >&2
+        exit 2
+        ;;
+esac
