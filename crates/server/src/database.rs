@@ -17,7 +17,7 @@ pub async fn migrate() -> Result<(), String> {
         .connect_with(options)
         .await
         .map_err(|error| format!("migrate: cannot connect to the database: {error}"))?;
-    iasion_migrations::MIGRATOR
+    iasion_migrations::release()
         .run(&pool)
         .await
         .map_err(|error| format!("migrate: {error}"))?;

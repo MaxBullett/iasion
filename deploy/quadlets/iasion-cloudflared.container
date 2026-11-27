@@ -1,0 +1,23 @@
+# Cloudflare Tunnel (ADR-0040, decision 15): outbound connections only. The tunnel's
+# public hostname points to http://iasion-app:8080 in the Cloudflare dashboard.
+[Unit]
+Description=Iasion tunnel
+Wants=iasion-app.service
+After=iasion-app.service
+
+[Container]
+ContainerName=iasion-cloudflared
+Image=docker.io/cloudflare/cloudflared:2026.11.2
+Network=iasion.network
+Exec=tunnel --no-autoupdate run
+Secret=iasion-tunnel-token,type=env,target=TUNNEL_TOKEN
+ReadOnly=true
+NoNewPrivileges=true
+DropCapability=all
+
+[Service]
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
