@@ -17,6 +17,7 @@ pub fn problems(file_name: &str, sql: &str) -> Vec<String> {
     };
     let words = words(&strip_comments(sql));
     let mut found = Vec::new();
+    found.extend(contract_problems(file_name, &words));
     for other in SCHEMAS.iter().filter(|schema| **schema != context) {
         let qualified = words
             .iter()
@@ -32,6 +33,35 @@ pub fn problems(file_name: &str, sql: &str) -> Vec<String> {
         }
     }
     found
+}
+
+/// A migration that removes something is a contract migration (ADR-0040, decision
+/// 11). Before one runs, `migrate` must take a backup that is kept and prove it
+/// restores; until `iasion migrate` does that, contract migrations are refused, so that
+/// none runs without it.
+fn contract_problems(file_name: &str, words: &[String]) -> Vec<String> {
+    const NOT_YET: &str = "contract migrations need the kept, restore-checked backup of \
+        ADR-0040 decision 11, which `iasion migrate` does not take yet";
+    let named = file_name
+        .strip_suffix(".sql")
+        .is_some_and(|stem| stem.split('_').any(|part| part == "contract"));
+    let removes = words
+        .iter()
+        .enumerate()
+        .any(|(i, word)| match word.as_str() {
+            "drop" | "truncate" => true,
+            // `ON DELETE` in a foreign key removes nothing by itself.
+            "delete" => i == 0 || words[i - 1] != "on",
+            _ => false,
+        });
+    match (named, removes) {
+        (true, _) => vec![format!("{file_name}: {NOT_YET}")],
+        (false, true) => vec![format!(
+            "{file_name}: removes something (DROP, TRUNCATE or DELETE), so it is a contract \
+             migration; {NOT_YET}"
+        )],
+        (false, false) => Vec::new(),
+    }
 }
 
 /// The context in a name `<timestamp>_<context>_<name>.sql`, if the name has that form.
@@ -121,6 +151,39 @@ mod tests {
     fn a_column_named_like_a_schema_passes() {
         assert_eq!(
             problems(NAME, "ALTER TABLE ledger.accounts ADD access text;"),
+            Vec::<String>::new()
+        );
+    }
+
+    #[test]
+    fn a_contract_migration_is_refused_for_now() {
+        let name = "20261126000009_ledger_contract_drop_old_column.sql";
+        assert_eq!(problems(name, "SELECT 1;").len(), 1);
+    }
+
+    #[test]
+    fn removing_something_makes_it_a_contract_migration() {
+        for sql in [
+            "ALTER TABLE ledger.accounts DROP COLUMN name;",
+            "DROP TABLE ledger.accounts;",
+            "TRUNCATE ledger.accounts;",
+            "DELETE FROM ledger.accounts;",
+        ] {
+            assert_eq!(problems(NAME, sql).len(), 1, "{sql}");
+        }
+    }
+
+    #[test]
+    fn a_foreign_key_on_delete_removes_nothing() {
+        let sql = "CREATE TABLE ledger.flows (account uuid REFERENCES ledger.accounts \
+                   ON DELETE RESTRICT);";
+        assert_eq!(problems(NAME, sql), Vec::<String>::new());
+    }
+
+    #[test]
+    fn a_word_in_a_comment_does_not_count() {
+        assert_eq!(
+            problems(NAME, "-- we never drop anything\nSELECT 1;"),
             Vec::<String>::new()
         );
     }
