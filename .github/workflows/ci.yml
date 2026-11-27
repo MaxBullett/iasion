@@ -204,7 +204,7 @@ jobs:
           cargo run --quiet --package iasion-server -- migrate
           cargo xtask dev-token >/dev/null
           docker run --detach --name access-dev --publish 127.0.0.1:8790:8080 \
-            --volume "$PWD/.dev/access/public:/srv:ro" busybox:1.37.0 httpd -f -p 8080 -h /srv
+            --volume "$PWD/.dev/access/public:/srv:ro" busybox:1.38.0 httpd -f -p 8080 -h /srv
       - name: End-to-end tests
         # Playwright starts `iasion serve` (web/playwright.config.ts).
         run: pnpm --dir web exec playwright test
