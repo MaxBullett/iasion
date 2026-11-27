@@ -1,0 +1,22 @@
+# The migrations, as a step of their own before the app starts (ADR-0033, decision
+# 19; ADR-0040, decision 9): a backup first, then `iasion migrate` with the owner
+# role. The app requires this unit, so it runs again whenever the app starts, including
+# after `podman auto-update` pulled a new image.
+[Unit]
+Description=Iasion migrations
+Requires=iasion-db.service
+After=iasion-db.service
+
+[Container]
+ContainerName=iasion-migrate
+Image=@IASION_IMAGE@
+Network=iasion.network
+Exec=migrate
+Secret=iasion-migrate-database-url,type=env,target=IASION_MIGRATE_DATABASE_URL
+ReadOnly=true
+NoNewPrivileges=true
+DropCapability=all
+
+[Service]
+Type=oneshot
+ExecStartPre=/usr/local/lib/iasion/iasion-backup pre-migrate
