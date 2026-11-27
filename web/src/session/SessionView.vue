@@ -2,6 +2,7 @@
 // The walking skeleton's only screen: who is signed in, and the database behind it.
 import { onMounted, ref } from 'vue'
 import { createApiClient } from '../api/client'
+import { revisionLabel } from './revision'
 import { loadSession, type SessionState } from './session'
 
 const state = ref<SessionState>({ kind: 'loading' })
@@ -22,6 +23,9 @@ onMounted(async () => {
         <dt>Schema version</dt>
         <dd>{{ state.schemaVersion ?? 'none' }}</dd>
       </dl>
+      <footer>
+        <p>Version {{ revisionLabel(state.revision) }}</p>
+      </footer>
     </template>
     <p v-else-if="state.kind === 'refused'" role="alert">{{ state.title }}</p>
     <p v-else role="alert">The server cannot be reached.</p>

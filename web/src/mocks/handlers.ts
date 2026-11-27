@@ -7,6 +7,7 @@ export const setupSession: Session = {
   email: 'first.member@example.com',
   first_setup_pending: true,
   schema_version: 20261126000004,
+  revision: '0123456789abcdef0123456789abcdef01234567',
 }
 
 export function sessionHandler(baseUrl: string, session: Session = setupSession) {

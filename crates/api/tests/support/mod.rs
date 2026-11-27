@@ -33,6 +33,8 @@ pub const SETUP_EMAIL: &str = "first.member@example.com";
 /// email.
 pub const OTHER_EMAIL: &str = "alex@example.com";
 pub const SCHEMA_VERSION: i64 = 20261126000004;
+/// The build's commit, as `server` passes it in.
+pub const REVISION: &str = "0123456789abcdef0123456789abcdef01234567";
 
 /// A test signing key with its `kid`.
 pub struct TestKey {
@@ -176,6 +178,7 @@ pub fn settings() -> Settings {
         },
         public_origin: PUBLIC_ORIGIN.into(),
         setup_email: SETUP_EMAIL.into(),
+        revision: REVISION.into(),
     }
 }
 

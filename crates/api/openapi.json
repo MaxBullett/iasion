@@ -104,7 +104,8 @@
         "required": [
           "email",
           "first_setup_pending",
-          "schema_version"
+          "schema_version",
+          "revision"
         ],
         "properties": {
           "email": {
@@ -114,6 +115,10 @@
           "first_setup_pending": {
             "type": "boolean",
             "description": "No household exists yet; only first setup can follow (ADR-0024)."
+          },
+          "revision": {
+            "type": "string",
+            "description": "The commit the running release was built from, or `dev` for a local build."
           },
           "schema_version": {
             "type": [

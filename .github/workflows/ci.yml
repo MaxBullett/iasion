@@ -285,6 +285,7 @@ jobs:
           context: .
           load: true
           tags: iasion:ci
+          build-args: IASION_REVISION=${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
       - name: The image runs as on the host
@@ -348,6 +349,7 @@ jobs:
         with:
           context: .
           push: true
+          build-args: IASION_REVISION=${{ github.sha }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
