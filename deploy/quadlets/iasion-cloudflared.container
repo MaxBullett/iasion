@@ -17,7 +17,9 @@ DropCapability=all
 
 [Service]
 Restart=always
-RestartSec=10
+RestartSec=5s
+RestartSteps=8
+RestartMaxDelaySec=10min
 
 [Install]
 WantedBy=multi-user.target
