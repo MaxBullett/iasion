@@ -60,6 +60,12 @@ Access decides who reaches the instance; the app still verifies every request's 
 - A dedicated VM with Debian 13, 2 GB of memory and 20 GB of disk or more. Not a system
   container: containers inside one need nesting (ADR-0040, decision 4).
 - Outbound access to the internet. No inbound access is needed.
+- A network configuration on first boot. A cloud image brings up only the interfaces
+  its cloud-init data configures: if the platform passes no interface (only a
+  nameserver, say), the VM comes up without network. `cloud-init status --long` and an
+  empty `/etc/netplan/` show it; give the platform's cloud-init settings DHCP or a
+  static address for the interface and boot again.
+- A firewall around it, see [Firewall](#firewall).
 
 ### A backup target
 
@@ -228,6 +234,33 @@ This replaces the live database with a backup, for example to undo a failed rele
 A household always has at least one login identity; recovering access when the last one
 is lost is an operator task ([ADR-0026](adr/0026-last-login-identity-and-recovery.md)). The command
 for it comes with the login identities themselves (S-014), and its steps go here then.
+
+## Firewall
+
+The instance needs no inbound connections, and nothing on your network but a DNS
+resolver. A firewall in front of the VM, on the hypervisor or the network rather than
+inside the VM (Podman manages the VM's own packet filter for its containers):
+
+| Direction | Allow | Why |
+|---|---|---|
+| Inbound | SSH, and ping if you like, from your admin network only | Administration. The tunnel needs no inbound port. |
+| Outbound | DNS to your resolver | Name resolution |
+| Outbound | Nothing else on private networks: `10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`, `100.64.0.0/10`, and `fc00::/7` with IPv6 | A compromised instance cannot reach other machines |
+| Outbound | The internet | The tunnel (port 7844), the registries, Debian's mirrors, Cloudflare's keys, the backup target (443) |
+
+Replies to connections you open stay allowed with a stateful firewall. If the backup
+target is on your own network, allow that one address above the private-network rule.
+
+Check from the VM:
+
+```sh
+curl -sSI https://ghcr.io | head -n 1        # an HTTP status: the internet answers
+getent hosts deb.debian.org                  # an address: DNS works
+ping -c 2 -W 2 <another machine on your LAN> # no answer
+```
+
+If the resolver filters what it answers, it must still resolve `*.argotunnel.com` and
+`*.cloudflareaccess.com`.
 
 ## Hardening
 
