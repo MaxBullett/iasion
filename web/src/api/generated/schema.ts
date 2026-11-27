@@ -47,6 +47,8 @@ export interface components {
             email: string;
             /** @description No household exists yet; only first setup can follow (ADR-0024). */
             first_setup_pending: boolean;
+            /** @description The commit the running release was built from, or `dev` for a local build. */
+            revision: string;
             /**
              * Format: int64
              * @description Version of the latest applied migration; `null` before the first.

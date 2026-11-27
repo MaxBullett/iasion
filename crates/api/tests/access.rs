@@ -35,6 +35,7 @@ async fn serves_the_setup_email_with_a_valid_token() {
             "email": SETUP_EMAIL,
             "first_setup_pending": true,
             "schema_version": SCHEMA_VERSION,
+            "revision": REVISION,
         })
     );
 }

@@ -33,6 +33,8 @@ pub const SETUP_EMAIL: &str = "first.member@example.com";
 /// email.
 pub const OTHER_EMAIL: &str = "alex@example.com";
 pub const SCHEMA_VERSION: i64 = 20261126000004;
+/// The build's commit, as `server` passes it in.
+pub const REVISION: &str = "0123456789abcdef0123456789abcdef01234567";
 
 /// A test signing key with its `kid`.
 pub struct TestKey {
@@ -176,6 +178,7 @@ pub fn settings() -> Settings {
         },
         public_origin: PUBLIC_ORIGIN.into(),
         setup_email: SETUP_EMAIL.into(),
+        revision: REVISION.into(),
     }
 }
 
@@ -260,15 +263,40 @@ impl Reply {
     }
 }
 
-/// Captures what the code under test logs while the returned guard lives.
-pub fn capture_logs() -> (Logs, tracing::subscriber::DefaultGuard) {
+/// Captures what the code under test logs on this thread while the returned guard
+/// lives.
+///
+/// One global subscriber, installed once, writes each line to the buffer of the thread
+/// that logged it. A subscriber per test (`set_default`) is not enough: tracing caches
+/// per call site whether anyone listens, and a test on another thread without a
+/// subscriber can leave that cache saying no one does. `#[tokio::test]` runs each test
+/// on a thread of its own, so the buffers never mix.
+pub fn capture_logs() -> (Logs, CaptureGuard) {
+    static INSTALL: std::sync::Once = std::sync::Once::new();
+    INSTALL.call_once(|| {
+        let subscriber = tracing_subscriber::fmt()
+            .with_writer(ThreadWriter)
+            .with_ansi(false)
+            .with_max_level(tracing::Level::TRACE)
+            .finish();
+        tracing::subscriber::set_global_default(subscriber).unwrap();
+    });
     let logs = Logs::default();
-    let subscriber = tracing_subscriber::fmt()
-        .with_writer(logs.clone())
-        .with_ansi(false)
-        .with_max_level(tracing::Level::TRACE)
-        .finish();
-    (logs, tracing::subscriber::set_default(subscriber))
+    CAPTURE.with(|capture| *capture.borrow_mut() = Some(logs.clone()));
+    (logs, CaptureGuard)
+}
+
+thread_local! {
+    static CAPTURE: std::cell::RefCell<Option<Logs>> = const { std::cell::RefCell::new(None) };
+}
+
+/// Stops capturing on this thread when dropped.
+pub struct CaptureGuard;
+
+impl Drop for CaptureGuard {
+    fn drop(&mut self) {
+        CAPTURE.with(|capture| *capture.borrow_mut() = None);
+    }
 }
 
 #[derive(Clone, Default)]
@@ -280,9 +308,16 @@ impl Logs {
     }
 }
 
-impl io::Write for Logs {
+/// Writes to the capturing buffer of the current thread, or nowhere.
+struct ThreadWriter;
+
+impl io::Write for ThreadWriter {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
-        self.0.lock().unwrap().extend_from_slice(buf);
+        CAPTURE.with(|capture| {
+            if let Some(Logs(buffer)) = capture.borrow().as_ref() {
+                buffer.lock().unwrap().extend_from_slice(buf);
+            }
+        });
         Ok(buf.len())
     }
 
@@ -291,10 +326,10 @@ impl io::Write for Logs {
     }
 }
 
-impl<'a> tracing_subscriber::fmt::MakeWriter<'a> for Logs {
-    type Writer = Logs;
+impl<'a> tracing_subscriber::fmt::MakeWriter<'a> for ThreadWriter {
+    type Writer = ThreadWriter;
 
     fn make_writer(&'a self) -> Self::Writer {
-        self.clone()
+        ThreadWriter
     }
 }

@@ -15,6 +15,8 @@ RUN pnpm run build
 FROM rust:1.100.0 AS server
 # The toolchain of rust-toolchain.toml, without the components it lists for development.
 ENV RUSTUP_TOOLCHAIN=1.100.0
+# The commit, compiled into the binary and shown by the app; CI passes the SHA.
+ARG IASION_REVISION=dev
 WORKDIR /src
 COPY . .
 RUN --mount=type=cache,target=/usr/local/cargo/registry \

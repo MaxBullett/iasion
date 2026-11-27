@@ -10,6 +10,13 @@ const DEFAULT_LISTEN_ADDR: &str = "0.0.0.0:8080";
 /// loopback interface only, so never through the tunnel (ADR-0040, decision 16).
 pub const DEFAULT_HEALTH_ADDR: &str = "127.0.0.1:8081";
 
+/// The commit this binary was built from: the image build sets `IASION_REVISION` while
+/// compiling (Dockerfile). A local build says `dev`.
+pub const REVISION: &str = match option_env!("IASION_REVISION") {
+    Some(revision) => revision,
+    None => "dev",
+};
+
 /// The built frontend, relative to the working directory, unless `IASION_WEB_DIR`
 /// says otherwise (ADR-0043, decision 12).
 const DEFAULT_WEB_DIR: &str = "web/dist";
@@ -35,6 +42,7 @@ impl Config {
                 },
                 public_origin: required("IASION_PUBLIC_ORIGIN")?,
                 setup_email: required("IASION_SETUP_EMAIL")?,
+                revision: REVISION.into(),
             },
             certs_url,
             web_dir: optional("IASION_WEB_DIR")

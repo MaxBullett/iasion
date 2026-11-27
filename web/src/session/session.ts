@@ -9,6 +9,7 @@ export type SessionState =
       email: string
       firstSetupPending: boolean
       schemaVersion: number | null
+      revision: string
     }
   /** The API answered with a problem (RFC 9457): not signed in, denied, or unavailable. */
   | { kind: 'refused'; status: number; title: string }
@@ -24,6 +25,7 @@ export async function loadSession(client: ApiClient): Promise<SessionState> {
         email: data.email,
         firstSetupPending: data.first_setup_pending,
         schemaVersion: data.schema_version,
+        revision: data.revision,
       }
     }
     return {

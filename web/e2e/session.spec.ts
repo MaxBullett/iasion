@@ -22,6 +22,8 @@ test('shows who is signed in and the schema version from the database', async ({
   await expect(page.getByText('Signed in as first.member@example.com')).toBeVisible()
   await expect(page.getByText('No household exists yet. First setup comes next.')).toBeVisible()
   await expect(page.getByRole('definition')).toHaveText(/^\d{14}$/)
+  // A local build; the image shows the commit (Dockerfile, IASION_REVISION).
+  await expect(page.getByText('Version dev')).toBeVisible()
   expect(errors).toEqual([])
 })
 

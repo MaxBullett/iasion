@@ -41,7 +41,12 @@ pub async fn run() -> Result<(), String> {
     let app = iasion_api::app(api, &config.web_dir);
     let app_listener = bind(config.listen_addr).await?;
     let health_listener = bind(config.health_addr).await?;
-    tracing::info!(app = %config.listen_addr, health = %config.health_addr, "listening");
+    tracing::info!(
+        app = %config.listen_addr,
+        health = %config.health_addr,
+        revision = crate::config::REVISION,
+        "listening"
+    );
     notify::ready()?;
 
     let health = axum::serve(health_listener, health::router(pool));

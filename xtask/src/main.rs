@@ -4,6 +4,7 @@
 mod deps;
 mod dev_access;
 mod migrations;
+mod pins;
 mod quadlets;
 mod supply_chain;
 mod web;
@@ -30,6 +31,7 @@ commands:
   deps      dependency edges against the context map (ADR-0034, ADR-0035)
   migrations  migration names, and one schema per migration (ADR-0033)
   quadlets  the units in deploy/quadlets (ADR-0040)
+  pins      versions pinned in several places agree (ADR-0039)
   features  build and test each context crate with `postgres` off (ADR-0034)
   openapi   regenerate crates/api/openapi.json from the code, and the web client
             from it (ADR-0036)
@@ -49,6 +51,7 @@ fn main() -> ExitCode {
         Some("deps") => deps(),
         Some("migrations") => migrations(),
         Some("quadlets") => quadlets(),
+        Some("pins") => pins(),
         Some("features") => features(),
         Some("openapi") => openapi(false).and_then(|()| web::generate_client()),
         Some("web-check") => web::check(),
@@ -81,6 +84,7 @@ fn check() -> Result<(), String> {
     deps()?;
     migrations()?;
     quadlets()?;
+    pins()?;
     features()?;
     openapi(true)
 }
@@ -198,6 +202,19 @@ fn quadlets() -> Result<(), String> {
         Ok(())
     } else {
         Err(format!("quadlets:\n  {}", found.join("\n  ")))
+    }
+}
+
+fn pins() -> Result<(), String> {
+    let found = pins::problems(|file| fs::read_to_string(file).map_err(|e| e.to_string()));
+    if found.is_empty() {
+        println!(
+            "pins: {} tools, each pinned to one version everywhere",
+            pins::PINS.len()
+        );
+        Ok(())
+    } else {
+        Err(format!("pins:\n  {}", found.join("\n  ")))
     }
 }
 

@@ -22,6 +22,7 @@ describe('loadSession', () => {
       email: setupSession.email,
       firstSetupPending: true,
       schemaVersion: 20261126000004,
+      revision: '0123456789abcdef0123456789abcdef01234567',
     })
   })
 

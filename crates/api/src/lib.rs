@@ -40,6 +40,9 @@ pub struct Settings {
     /// (`IASION_SETUP_EMAIL`, ADR-0024). Compared trimmed and lowercased (ADR-0037,
     /// decision 8).
     pub setup_email: String,
+    /// The commit the binary was built from, or `dev` for a local build, so that a page
+    /// shows which release runs.
+    pub revision: String,
 }
 
 /// Response header that carries the request ID, which the logs carry as well
@@ -51,6 +54,7 @@ struct AppState {
     verifier: Arc<access::Verifier>,
     public_origin: Arc<str>,
     setup_email: Arc<str>,
+    revision: Arc<str>,
     status: Arc<dyn SystemStatus>,
     request_ids: Arc<AtomicU64>,
 }
@@ -69,6 +73,7 @@ pub fn router(
         verifier: Arc::new(access::Verifier::new(&settings.access, keys)),
         public_origin: settings.public_origin.trim().trim_end_matches('/').into(),
         setup_email: access::normalize_email(&settings.setup_email).into(),
+        revision: settings.revision.into(),
         status,
         request_ids: Arc::new(AtomicU64::new(0)),
     };
@@ -244,6 +249,8 @@ struct Session {
     /// Version of the latest applied migration; `null` before the first.
     #[schema(required = true)]
     schema_version: Option<i64>,
+    /// The commit the running release was built from, or `dev` for a local build.
+    revision: String,
 }
 
 /// Who is signed in, and the state of the installation.
@@ -269,6 +276,7 @@ async fn session(
             email,
             first_setup_pending: true,
             schema_version,
+            revision: state.revision.to_string(),
         })
         .into_response(),
         Err(_) => {
