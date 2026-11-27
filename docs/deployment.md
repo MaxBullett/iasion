@@ -11,7 +11,7 @@ on the instance.
 | Unit | What it is |
 |---|---|
 | `iasion-db` | PostgreSQL 18 with its data in the `iasion-db` volume. Ready once it accepts connections. |
-| `iasion-migrate` | One shot, before the app: a backup, then `iasion migrate` with the owner role. |
+| `iasion-migrate` | One shot, before the app: a backup if a migration is pending, then `iasion migrate` with the owner role. |
 | `iasion-app` | The app: API and frontend on port 8080 of the private network, read-only, without capabilities. Updated by `podman auto-update`. |
 | `iasion-cloudflared` | The tunnel. Outbound connections only. |
 | `iasion-backup.timer` | The nightly backup. |
@@ -136,14 +136,14 @@ tunnel token: `podman secret rm iasion-tunnel-token`.
 
 `publish` pushes a new image for every commit on `main`. Within 15 minutes,
 `podman auto-update` pulls it and restarts the app. Starting the app first runs
-`iasion-migrate`: a backup, then the migrations. The app reports itself ready only once
+`iasion-migrate`: a backup if the new release brings a migration, then the migrations. The app reports itself ready only once
 it listens.
 
 If the new app does not start, Podman rolls back to the previous image and starts it
 again. The previous release runs on the migrated schema, which every migration must
 allow (ADR-0040, decision 10), and its migrate step accepts the newer migrations. The
-broken release is tried again at every check, each time with a backup, until `main` has
-a fix.
+broken release is tried again at every check, with a backup whenever it brings a
+migration, until `main` has a fix.
 
 - Watch: `journalctl -u podman-auto-update -u iasion-migrate -u iasion-app`.
 - Update now: `podman auto-update`. See what would update: `podman auto-update --dry-run`.
@@ -164,7 +164,7 @@ copies the dump to the restic repository, encrypted (ADR-0040, decisions 12 and 
 | When | Tag | Kept in restic |
 |---|---|---|
 | Every night, around 03:30 | `nightly` | 7 daily, 4 weekly, 12 monthly |
-| Before every migration | `pre-migrate` | 30 days |
+| Before migrating, when a migration is pending | `pre-migrate` | 30 days |
 
 The dumps also stay in `/var/lib/iasion/backups` for three days. There is no
 point-in-time recovery: at most a day of entries can be lost (decision 13).

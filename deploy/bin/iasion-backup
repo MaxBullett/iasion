@@ -4,7 +4,9 @@
 # /etc/iasion/restic.env. Usage: iasion-backup nightly | pre-migrate
 #
 # Nightly backups keep 7 daily, 4 weekly and 12 monthly snapshots; the ones taken
-# before migrations are kept for 30 days. The newest dumps also stay on the VM for
+# before migrations are kept for 30 days. Before migrating, a backup is taken only if a
+# migration is pending: most starts of the app migrate nothing, and a backup that is
+# not needed must not delay or block them. The newest dumps also stay on the VM for
 # three days, for a quick restore.
 set -eu
 
@@ -25,6 +27,22 @@ restic() {
         --volume /var/cache/iasion/restic:/root/.cache/restic \
         "$RESTIC_IMAGE" "$@"
 }
+
+if [ "$kind" = pre-migrate ]; then
+    # The image the migrate unit is about to run, asked with the same network and role.
+    image=$(sed -n 's/^IASION_IMAGE=//p' /etc/iasion/iasion.env | tail -n 1)
+    set +e
+    podman run --rm --network iasion --read-only --cap-drop all \
+        --secret iasion-migrate-database-url,type=env,target=IASION_MIGRATE_DATABASE_URL \
+        "$image" migrate --pending
+    status=$?
+    set -e
+    case "$status" in
+        0) ;;
+        1) echo "iasion-backup: nothing to migrate, so no backup is needed"; exit 0 ;;
+        *) echo "iasion-backup: cannot tell whether a migration is pending" >&2; exit 1 ;;
+    esac
+fi
 
 mkdir -p "$DUMPS" /var/lib/iasion/restic /var/cache/iasion/restic
 chmod 700 "$DUMPS"

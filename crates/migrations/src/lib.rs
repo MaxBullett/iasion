@@ -17,3 +17,25 @@ pub fn release() -> sqlx::migrate::Migrator {
     migrator.set_ignore_missing(true);
     migrator
 }
+
+/// How many migrations this binary embeds that the database has not applied
+/// successfully. Migrations the database knows but the binary does not (a newer
+/// release's) do not count. Before the first `iasion migrate`, all of them are pending.
+pub async fn pending(pool: &sqlx::PgPool) -> Result<usize, sqlx::Error> {
+    let recorded: Option<String> =
+        sqlx::query_scalar("SELECT to_regclass('public._sqlx_migrations')::text")
+            .fetch_one(pool)
+            .await?;
+    let applied: Vec<i64> = match recorded {
+        None => Vec::new(),
+        Some(_) => {
+            sqlx::query_scalar("SELECT version FROM public._sqlx_migrations WHERE success")
+                .fetch_all(pool)
+                .await?
+        }
+    };
+    Ok(MIGRATOR
+        .iter()
+        .filter(|migration| !applied.contains(&migration.version))
+        .count())
+}

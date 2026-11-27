@@ -1,6 +1,6 @@
 # The migrations, as a step of their own before the app starts (ADR-0033, decision
-# 19; ADR-0040, decision 9): a backup first, then `iasion migrate` with the owner
-# role. The app requires this unit, so it runs again whenever the app starts, including
+# 19; ADR-0040, decision 9): a backup first if a migration is pending, then `iasion
+# migrate` with the owner role. The app requires this unit, so it runs again whenever the app starts, including
 # after `podman auto-update` pulled a new image.
 [Unit]
 Description=Iasion migrations
