@@ -107,6 +107,17 @@ secret_exists() { podman secret exists "$1"; }
 secret_create() { printf '%s' "$2" | podman secret create "$1" - >/dev/null; }
 password() { od -An -N24 -tx1 /dev/urandom | tr -d ' \n'; }
 
+# A tunnel token is one base64 string that starts with `eyJ`. Anything else, e.g. the
+# install command it is shown in, is refused rather than stored.
+check_token() {
+    case "$1" in
+        '' | *'<'*) fail "the tunnel token is empty or still a placeholder" ;;
+        *[!A-Za-z0-9+/=_-]*) fail "that is not only the tunnel token: paste just the long string that starts with eyJ, without the command around it" ;;
+        eyJ*) ;;
+        *) fail "a tunnel token starts with eyJ; paste just the token, without the command around it" ;;
+    esac
+}
+
 if ! secret_exists iasion-db-owner-password; then
     say "generating the database passwords"
     postgres=$(password)
@@ -122,7 +133,9 @@ fi
 
 if ! secret_exists iasion-tunnel-token; then
     if [ -f "$CONF/tunnel-token" ]; then
-        token=$(tr -d ' \n' <"$CONF/tunnel-token")
+        # Only the line break at the end is dropped; spaces inside stay, so a pasted
+        # command is refused below instead of being glued into one string.
+        token=$(tr -d '\r\n' <"$CONF/tunnel-token" | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')
         rm -f "$CONF/tunnel-token"
     elif [ -t 0 ]; then
         printf 'Cloudflare Tunnel token (docs/deployment.md): '
@@ -133,9 +146,7 @@ if ! secret_exists iasion-tunnel-token; then
     else
         fail "no tunnel token: put it into $CONF/tunnel-token or run this in a terminal"
     fi
-    case "$token" in
-        '' | *'<'*) fail "the tunnel token is empty or still a placeholder" ;;
-    esac
+    check_token "$token"
     secret_create iasion-tunnel-token "$token"
     unset token
 fi
