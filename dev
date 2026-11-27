@@ -53,8 +53,9 @@ prepare_host() {
 in_workspace() {
     prepare_host
     if [ -z "$(compose ps --status running --quiet workspace)" ]; then
-        compose build --quiet workspace
-        compose up --detach --wait workspace
+        say "starting the workspace container"
+        compose --progress quiet build workspace
+        compose --progress quiet up --detach --wait workspace
     fi
     if [ -t 0 ] && [ -t 1 ]; then
         compose exec workspace "$@"
