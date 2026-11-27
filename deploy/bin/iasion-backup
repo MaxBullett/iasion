@@ -1,0 +1,45 @@
+#!/bin/sh
+# Backs up the database (ADR-0040, decisions 12 and 13): a pg_dump through the database
+# container, encrypted and copied off the VM with restic, to the repository set in
+# /etc/iasion/restic.env. Usage: iasion-backup nightly | pre-migrate
+#
+# Nightly backups keep 7 daily, 4 weekly and 12 monthly snapshots; the ones taken
+# before migrations are kept for 30 days. The newest dumps also stay on the VM for
+# three days, for a quick restore.
+set -eu
+
+kind=${1:-}
+case "$kind" in
+    nightly | pre-migrate) ;;
+    *) echo "usage: iasion-backup nightly | pre-migrate" >&2; exit 2 ;;
+esac
+
+RESTIC_IMAGE=docker.io/restic/restic:0.20.0
+DUMPS=/var/lib/iasion/backups
+SETTINGS=/etc/iasion/restic.env
+
+restic() {
+    podman run --rm --network host --env-file "$SETTINGS" --hostname iasion \
+        --volume "$DUMPS:/backups:ro" \
+        --volume /var/lib/iasion/restic:/var/lib/iasion/restic \
+        --volume /var/cache/iasion/restic:/root/.cache/restic \
+        "$RESTIC_IMAGE" "$@"
+}
+
+mkdir -p "$DUMPS" /var/lib/iasion/restic /var/cache/iasion/restic
+chmod 700 "$DUMPS"
+
+name="iasion-$(date -u +%Y%m%dT%H%M%SZ)-$kind.dump"
+# The custom format is compressed and restores with pg_restore.
+podman exec iasion-db pg_dump --username postgres --format custom iasion >"$DUMPS/$name.partial"
+mv "$DUMPS/$name.partial" "$DUMPS/$name"
+echo "iasion-backup: dumped $name"
+
+restic backup --quiet --tag "$kind" "/backups/$name"
+case "$kind" in
+    nightly) restic forget --quiet --tag nightly --keep-daily 7 --keep-weekly 4 --keep-monthly 12 --prune ;;
+    pre-migrate) restic forget --quiet --tag pre-migrate --keep-within 30d --prune ;;
+esac
+echo "iasion-backup: $name is in the restic repository"
+
+find "$DUMPS" -name 'iasion-*.dump' -mtime +3 -delete

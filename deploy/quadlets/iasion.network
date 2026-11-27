@@ -1,0 +1,4 @@
+# The private network of the instance (ADR-0040, decision 6). Nothing is published on
+# the VM; cloudflared reaches the app by its name.
+[Network]
+NetworkName=iasion
