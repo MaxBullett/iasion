@@ -53,3 +53,4 @@ supersedes the old one and update the old one's status.
 | [0043](0043-frontend-tooling.md) | Frontend tooling: Vite, ESLint and Prettier, served by the backend | Accepted |
 | [0044](0044-dev-script.md) | `./dev up` runs the whole app in development and reloads it on change | Accepted |
 | [0045](0045-api-restarts-on-demand.md) | In development the API rebuilds on `./dev restart`, not on every change | Accepted |
+| [0046](0046-markdown-only-pull-requests-skip-the-builds.md) | A pull request that changes only Markdown skips the build jobs in CI | Accepted |
