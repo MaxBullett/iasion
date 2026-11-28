@@ -138,7 +138,7 @@ live in Classification.
 | HTTP framework | axum, only in `api` and `server` | [ADR-0035](docs/adr/0035-axum-web-framework.md) |
 | API contract | OpenAPI 3.1 from the code (utoipa), committed; typed client (openapi-typescript, openapi-fetch) | [ADR-0036](docs/adr/0036-api-contract.md) |
 | Authentication | Cloudflare Access JWT verified in `api`, email mapped to a member | [ADR-0037](docs/adr/0037-authentication.md) |
-| Dev environment | Docker Compose for services, a devcontainer for the toolchain, `cargo xtask`, pnpm; `./dev up` runs the app and reloads it on change | [ADR-0038](docs/adr/0038-dev-environment.md), [ADR-0044](docs/adr/0044-dev-script.md) |
+| Dev environment | Docker Compose for services, a devcontainer for the toolchain, `cargo xtask`, pnpm; `./dev up` runs the app, the frontend reloads on change | [ADR-0038](docs/adr/0038-dev-environment.md), [ADR-0044](docs/adr/0044-dev-script.md), [ADR-0045](docs/adr/0045-api-restarts-on-demand.md) |
 | CI and secret scanning | GitHub Actions on GitHub-hosted runners, Betterleaks, local private-terms hooks, cargo-deny | [ADR-0039](docs/adr/0039-ci-and-secret-scanning.md) |
 | Deployment | One image; Podman on a dedicated VM; pulled updates with rollback; Cloudflare Tunnel | [ADR-0040](docs/adr/0040-deployment.md) |
 | Frontend | Vue 3, TypeScript | [ADR-0003](docs/adr/0003-vue-frontend.md) |
