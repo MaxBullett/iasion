@@ -1,6 +1,8 @@
 # CI (ADR-0039). Job names are the required checks of the main branch ruleset; a job
-# added here must be added there by hand. No path filters: a skipped required job
-# would leave pull requests waiting.
+# added here must be added there by hand. No path filters: a workflow they skip never
+# reports its required checks, and pull requests wait for good. A job skipped by its
+# `if:` reports success instead, which is how a pull request that changes only Markdown
+# skips the build jobs (ADR-0046).
 name: ci
 
 on:
@@ -16,6 +18,39 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  changes:
+    # Whether a pull request changes only Markdown outside web/ (ADR-0046). Not a
+    # required check: the jobs that need it run unless it reports `true`, so if it
+    # fails, everything runs. On a push it reports nothing, and everything runs.
+    name: changes
+    runs-on: ubuntu-latest
+    outputs:
+      markdown-only: ${{ steps.paths.outputs.markdown-only }}
+    steps:
+      - if: github.event_name == 'pull_request'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - id: paths
+        if: github.event_name == 'pull_request'
+        env:
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+        # Both names of a renamed file count. Git quotes an unusual path, which then
+        # does not end in .md, so it counts as code.
+        run: |
+          git diff --name-only --no-renames "$PR_BASE...$PR_HEAD" >"$RUNNER_TEMP/paths"
+          if [ -s "$RUNNER_TEMP/paths" ] &&
+            ! grep -q -v '\.md$' "$RUNNER_TEMP/paths" &&
+            ! grep -q '^web/' "$RUNNER_TEMP/paths"; then
+            result=true
+          else
+            result=false
+          fi
+          echo "Markdown only: $result"
+          echo "markdown-only=$result" >>"$GITHUB_OUTPUT"
+
   secrets:
     name: secrets
     runs-on: ubuntu-latest
@@ -49,6 +84,8 @@ jobs:
 
   rust:
     name: rust
+    needs: changes
+    if: ${{ !cancelled() && needs.changes.outputs.markdown-only != 'true' }}
     runs-on: ubuntu-latest
     services:
       db:
@@ -116,6 +153,8 @@ jobs:
 
   web:
     name: web
+    needs: changes
+    if: ${{ !cancelled() && needs.changes.outputs.markdown-only != 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -143,6 +182,8 @@ jobs:
 
   e2e:
     name: e2e
+    needs: changes
+    if: ${{ !cancelled() && needs.changes.outputs.markdown-only != 'true' }}
     runs-on: ubuntu-latest
     services:
       db:
@@ -227,6 +268,8 @@ jobs:
 
   supply-chain:
     name: supply-chain
+    needs: changes
+    if: ${{ !cancelled() && needs.changes.outputs.markdown-only != 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -268,6 +311,8 @@ jobs:
 
   image:
     name: image
+    needs: changes
+    if: ${{ !cancelled() && needs.changes.outputs.markdown-only != 'true' }}
     runs-on: ubuntu-latest
     services:
       db:
