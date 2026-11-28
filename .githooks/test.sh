@@ -103,5 +103,21 @@ else
     not_ok "without .private-terms the hook warns"
 fi
 
+# A linked worktree (git worktree add): its .git is a file pointing into the main
+# repository, and it has no .private-terms of its own.
+setup
+rm -rf "$WORK/linked"
+git worktree add -q -b linked "$WORK/linked"
+cd "$WORK/linked" || exit 1
+printf 'hello\n' >clean.txt && git add clean.txt
+expect accept "in a linked worktree, a clean commit passes" git commit -q -m "add a clean file"
+printf 'see %s\n' "$TERM_TEXT" >linked.txt && git add linked.txt
+expect refuse "in a linked worktree, a private term is refused" git commit -q -m "add a file"
+if grep -q "private term in the staged changes" "$WORK/out"; then
+    ok "in a linked worktree, the main worktree's .private-terms apply"
+else
+    not_ok "in a linked worktree, the main worktree's .private-terms apply"
+fi
+
 printf '\n%s passed, %s failed\n' "$PASSED" "$FAILED"
 [ "$FAILED" -eq 0 ]
