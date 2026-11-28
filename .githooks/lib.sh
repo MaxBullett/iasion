@@ -1,3 +1,4 @@
+# shellcheck shell=sh
 # Shared code of the git hooks (ADR-0041). POSIX sh; needs git, grep, awk, and either
 # a local Betterleaks of the pinned version or Docker.
 

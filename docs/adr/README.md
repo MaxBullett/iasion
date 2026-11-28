@@ -52,3 +52,4 @@ supersedes the old one and update the old one's status.
 | [0042](0042-license-agpl-3-or-later.md) | The license is AGPL-3.0-or-later | Accepted |
 | [0043](0043-frontend-tooling.md) | Frontend tooling: Vite, ESLint and Prettier, served by the backend | Accepted |
 | [0044](0044-dev-script.md) | `./dev up` runs the whole app in development and reloads it on change | Accepted |
+| [0045](0045-api-restarts-on-demand.md) | In development the API rebuilds on `./dev restart`, not on every change | Accepted |
