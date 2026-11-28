@@ -41,6 +41,21 @@ compose() {
     docker compose -f compose.yaml -f .devcontainer/compose.workspace.yaml --profile app "$@"
 }
 
+# The environment runs from one checkout at a time, as the Compose project that
+# compose.yaml names: its containers mount that checkout's tree. From another checkout
+# (a second git worktree, say), ./dev would take it over, check the other tree's code or
+# wipe the database, so it refuses. Plain Docker, so that it works before .env exists.
+project=iasion
+same_checkout() {
+    for container in $(docker ps --quiet --filter "label=com.docker.compose.project=$project"); do
+        dir=$(docker inspect --format '{{index .Config.Labels "com.docker.compose.project.working_dir"}}' "$container")
+        # The same directory, however it was reached (symbolic links, bind mounts).
+        # shellcheck disable=SC3013 # -ef is not POSIX, but dash, bash, BusyBox and BSD sh have it
+        [ "$dir" -ef . ] ||
+            fail "the dev environment runs from another checkout, $dir; ./dev down there first (or, if it is gone, docker compose -p $project down)"
+    done
+}
+
 # What has to exist before Compose starts anything: the settings, and the directory
 # access-dev serves, which Docker would otherwise create as root.
 prepare_host() {
@@ -73,6 +88,10 @@ in_workspace() {
 
 command=${1:-help}
 [ "$#" -gt 0 ] && shift
+
+case "$command" in
+    up | down | restart | status | logs | psql | token | check | test | e2e | x | sh) same_checkout ;;
+esac
 
 case "$command" in
     up)
