@@ -42,6 +42,10 @@ impl KeySource for HttpKeySource {
 pub struct ProcessClock(Instant);
 
 impl ProcessClock {
+    #[expect(
+        clippy::disallowed_methods,
+        reason = "`server` provides the clock to `api` (ADR-0034, decision 6)"
+    )]
     pub fn start() -> Self {
         Self(Instant::now())
     }
