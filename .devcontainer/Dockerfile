@@ -38,8 +38,9 @@ RUN set -eu; \
     rm -rf "/tmp/$name" "/tmp/$name.tar.gz"; \
     cargo-deny --version
 
+# psql for the dev database, shellcheck for `cargo xtask shellcheck` (ADR-0044).
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends postgresql-client \
+    && apt-get install -y --no-install-recommends postgresql-client shellcheck \
     && rm -rf /var/lib/apt/lists/*
 
 # Node and pnpm for the frontend (ADR-0038, ADR-0043). The versions match
@@ -60,5 +61,10 @@ ARG PLAYWRIGHT_VERSION=1.65.1
 RUN npx --yes "playwright@${PLAYWRIGHT_VERSION}" install-deps chromium firefox \
     && rm -rf /var/lib/apt/lists/* /root/.npm
 
-RUN useradd --create-home --uid 1000 dev && chown -R dev /usr/local/cargo
+# The caches that outlive a container are volumes (compose.workspace.yaml); their
+# mount points exist here so that the volumes start out owned by dev.
+RUN useradd --create-home --uid 1000 dev \
+    && mkdir -p /usr/local/cargo/registry /usr/local/cargo/git \
+       /home/dev/.cache /home/dev/.local/share/pnpm \
+    && chown -R dev /usr/local/cargo /home/dev
 USER dev

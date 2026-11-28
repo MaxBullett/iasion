@@ -6,6 +6,7 @@ mod dev_access;
 mod migrations;
 mod pins;
 mod quadlets;
+mod shellcheck;
 mod supply_chain;
 mod web;
 
@@ -26,13 +27,15 @@ const CONTEXT_CRATES: &[&str] = &[
 const USAGE: &str = "usage: cargo xtask <command>
 
 commands:
-  check     format, clippy, dependency edges, migrations, context crates without
-            `postgres`, and that crates/api/openapi.json is up to date
+  check     format, clippy, dependency edges, migrations, quadlets, pins, shell
+            scripts, context crates without `postgres`, and that
+            crates/api/openapi.json is up to date
   test      all tests of the workspace with all features
   deps      dependency edges against the context map (ADR-0034, ADR-0035)
   migrations  migration names, and one schema per migration (ADR-0033)
   quadlets  the units in deploy/quadlets (ADR-0040)
   pins      versions pinned in several places agree (ADR-0039)
+  shellcheck  every shell script of the repository (ADR-0044)
   features  build and test each context crate with `postgres` off (ADR-0034)
   openapi   regenerate crates/api/openapi.json from the code, and the web client
             from it (ADR-0036)
@@ -59,6 +62,7 @@ fn main() -> ExitCode {
         Some("migrations") => migrations(),
         Some("quadlets") => quadlets(),
         Some("pins") => pins(),
+        Some("shellcheck") => shellcheck(),
         Some("features") => features(),
         Some("openapi") => openapi(false).and_then(|()| web::generate_client()),
         Some("web-check") => web::check(),
@@ -92,6 +96,7 @@ fn check() -> Result<(), String> {
     migrations()?;
     quadlets()?;
     pins()?;
+    shellcheck()?;
     features()?;
     openapi(true)
 }
@@ -222,6 +227,44 @@ fn pins() -> Result<(), String> {
         Ok(())
     } else {
         Err(format!("pins:\n  {}", found.join("\n  ")))
+    }
+}
+
+fn shellcheck() -> Result<(), String> {
+    let listed = Command::new("git")
+        .args([
+            "ls-files",
+            "-z",
+            "--cached",
+            "--others",
+            "--exclude-standard",
+        ])
+        .output()
+        .map_err(|error| format!("shellcheck: git ls-files: {error}"))?;
+    if !listed.status.success() {
+        return Err("shellcheck: git ls-files failed".to_string());
+    }
+    let mut scripts = Vec::new();
+    for path in String::from_utf8_lossy(&listed.stdout).split('\0') {
+        // Listed but deleted in the working tree: nothing to check.
+        let Ok(text) = fs::read(path) else { continue };
+        let text = String::from_utf8_lossy(&text);
+        if shellcheck::is_shell_script(path, text.lines().next().unwrap_or("")) {
+            scripts.push(path.to_string());
+        }
+    }
+    let status = Command::new("shellcheck")
+        .args(["--external-sources", "--"])
+        .args(&scripts)
+        .status()
+        .map_err(|error| {
+            format!("shellcheck: {error}; the workspace image has it, elsewhere install it")
+        })?;
+    if status.success() {
+        println!("shellcheck: {} shell scripts", scripts.len());
+        Ok(())
+    } else {
+        Err("failed: shellcheck".to_string())
     }
 }
 

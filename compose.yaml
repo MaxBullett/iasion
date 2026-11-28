@@ -1,5 +1,7 @@
-# Services for development (ADR-0038). Values come from .env; copy .env.example.
-# The devcontainer adds its workspace service from .devcontainer/compose.workspace.yaml.
+# Services for development (ADR-0038). Values come from .env, which `./dev up` creates from
+# .env.example.
+# .devcontainer/compose.workspace.yaml adds the toolchain: the devcontainer's workspace,
+# and the app in development, which `./dev up` starts (ADR-0044).
 name: iasion
 
 services:

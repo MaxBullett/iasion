@@ -46,32 +46,61 @@ acceptance criteria, code follows. See [ADR-0001](docs/adr/0001-spec-driven-test
 ## Development
 
 Needs Docker with Compose; everything else is pinned in the repository
-([ADR-0038](docs/adr/0038-dev-environment.md)).
+([ADR-0038](docs/adr/0038-dev-environment.md)). `./dev` drives it from the host, in any
+shell ([ADR-0044](docs/adr/0044-dev-script.md)); on Windows, from WSL or Git Bash.
 
-1. `cp .env.example .env`. The placeholder values work for development.
-2. `mkdir -p .dev/access/public`, then either open the repository in its devcontainer,
-   or run `docker compose up -d` and use a toolchain of your own (Rust from
-   `rust-toolchain.toml`). direnv users get `.env` loaded through `.envrc`, and a
-   personal, gitignored `.envrc.local`.
-3. Install the git hooks once per clone: `git config core.hooksPath .githooks` (the
-   devcontainer does it). Put private terms that must never be committed into
-   `.private-terms`, one per line ([ADR-0041](docs/adr/0041-git-hooks-in-shell.md)).
-4. `cargo run -p iasion-server -- migrate` creates the schemas. `cargo xtask check` and
-   `cargo xtask test` run what CI runs, and `cargo xtask supply-chain` checks
-   advisories and licenses (needs cargo-deny, which the devcontainer has).
-5. `cargo run -p iasion-server -- serve` starts the app on port 8080. Cloudflare Access
-   is stood in for by `access-dev`: `cargo xtask dev-token` prints a token for the
-   setup email, signed with a dev key pair it creates in `.dev/` on first use
-   ([ADR-0038](docs/adr/0038-dev-environment.md)). Send it in the
-   `Cf-Access-Jwt-Assertion` header, e.g. to `GET /api/session`. Right after the key
-   pair is created, the app may take a minute to fetch it.
-6. The frontend ([ADR-0043](docs/adr/0043-frontend-tooling.md)), in `web/`:
-   `pnpm install`, then `pnpm dev` serves it on port 5173 and forwards `/api` to the
-   app with a dev token. `pnpm run build` puts it into `web/dist`, which `serve` serves
-   on port 8080. `cargo xtask web-check` runs what the `web` job runs.
-7. End-to-end tests: `pnpm exec playwright install chromium firefox` once, then
-   `pnpm exec playwright test` in `web/` against a migrated database and `access-dev`,
-   after `pnpm run build`.
+```sh
+./dev up      # the app on http://localhost:5173; the first build takes a few minutes
+./dev down    # stops everything; the dev database stays
+```
+
+`./dev up` creates `.env` from `.env.example` if there is none (its placeholder values
+work for development), and starts the database, `access-dev`, the API on port 8080 and
+the Vite dev server on port 5173. The frontend reloads in the browser on change. After
+changing Rust code, Cargo's files, a migration or `.env`, `./dev restart` builds the API
+and, if the build succeeds, migrates and restarts it; if not, it prints the error and
+the running API stays as it was ([ADR-0045](docs/adr/0045-api-restarts-on-demand.md)).
+
+| Command | What it does |
+|---|---|
+| `./dev up`, `./dev down` | Start and stop everything. `./dev down --wipe` also removes the dev database. |
+| `./dev status`, `./dev logs [service]` | What runs, and its logs (`api`, `web`, `db`, `access-dev`) |
+| `./dev restart [service]` | Rebuild and restart the API, or restart another service: `./dev restart web` installs changed frontend dependencies |
+| `./dev psql` | psql on the dev database, as the application role |
+| `./dev token [--email <email>]` | A dev Access token |
+| `./dev check`, `./dev test` | What CI's `rust` job runs, and every test |
+| `./dev e2e` | The end-to-end tests in Chromium and Firefox |
+| `./dev x <command>` | Any `cargo xtask` command, e.g. `./dev x openapi` |
+| `./dev sh` | A shell in the workspace container |
+
+Cloudflare Access is stood in for by `access-dev`, which serves the public half of a dev
+key pair that `cargo xtask dev-token` creates in `.dev/`. The Vite dev server adds a dev
+token for the setup email to every `/api` request; to call the API on port 8080
+directly, send one in the `Cf-Access-Jwt-Assertion` header.
+
+Install the git hooks once per clone: `git config core.hooksPath .githooks` (the
+devcontainer does it). Put private terms that must never be committed into
+`.private-terms`, one per line ([ADR-0041](docs/adr/0041-git-hooks-in-shell.md)).
+
+### In the devcontainer, or with a toolchain of your own
+
+The devcontainer is the same Compose project: open the repository in it and use
+`cargo xtask` directly (`cargo xtask` with no command lists them). `./dev` does not run
+inside it, but `./dev up` on the host next to it works; `./dev down` stops the
+devcontainer's workspace too. With a toolchain of your own
+(Rust from `rust-toolchain.toml`, Node and pnpm at their pinned versions),
+`docker compose up -d` starts the database and `access-dev`, after
+`mkdir -p .dev/access/public`; direnv users get `.env` loaded through `.envrc`, and a
+personal, gitignored `.envrc.local`. Then:
+
+- `cargo run -p iasion-server -- migrate`, then `cargo run -p iasion-server -- serve`
+  for the app on port 8080.
+- In `web/`: `pnpm install`, then `pnpm dev` for the frontend on port 5173
+  ([ADR-0043](docs/adr/0043-frontend-tooling.md)).
+- `cargo xtask check`, `cargo xtask test` and `cargo xtask web-check` run what CI runs;
+  `cargo xtask supply-chain` needs cargo-deny, and `cargo xtask shellcheck` shellcheck.
+- End-to-end tests, in `web/`: `pnpm exec playwright install chromium firefox` once,
+  then `pnpm run build` and `pnpm exec playwright test`, against a migrated database.
 
 ## License
 
