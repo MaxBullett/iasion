@@ -78,6 +78,10 @@ key pair that `cargo xtask dev-token` creates in `.dev/`. The Vite dev server ad
 token for the setup email to every `/api` request; to call the API on port 8080
 directly, send one in the `Cf-Access-Jwt-Assertion` header.
 
+The dev environment runs from one checkout at a time. While it runs, `./dev` in another
+checkout, such as a second git worktree, refuses and names the one it runs from: its
+containers mount that checkout's tree, and the database is shared.
+
 Install the git hooks once per clone: `git config core.hooksPath .githooks` (the
 devcontainer does it). Put private terms that must never be committed into
 `.private-terms`, one per line ([ADR-0041](docs/adr/0041-git-hooks-in-shell.md)).
