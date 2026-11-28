@@ -48,9 +48,12 @@ mkdir -p "$DUMPS" /var/lib/iasion/restic /var/cache/iasion/restic
 chmod 700 "$DUMPS"
 
 name="iasion-$(date -u +%Y%m%dT%H%M%SZ)-$kind.dump"
+partial="$DUMPS/$name.partial"
+# A dump that fails halfway is removed, not left to fill the disk.
+trap 'rm -f "$partial"' EXIT
 # The custom format is compressed and restores with pg_restore.
-podman exec iasion-db pg_dump --username postgres --format custom iasion >"$DUMPS/$name.partial"
-mv "$DUMPS/$name.partial" "$DUMPS/$name"
+podman exec iasion-db pg_dump --username postgres --format custom iasion >"$partial"
+mv "$partial" "$DUMPS/$name"
 echo "iasion-backup: dumped $name"
 
 restic backup --quiet --tag "$kind" "/backups/$name"
@@ -60,4 +63,4 @@ case "$kind" in
 esac
 echo "iasion-backup: $name is in the restic repository"
 
-find "$DUMPS" -name 'iasion-*.dump' -mtime +3 -delete
+find "$DUMPS" \( -name 'iasion-*.dump' -o -name 'iasion-*.dump.partial' \) -mtime +3 -delete

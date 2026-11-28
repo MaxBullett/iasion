@@ -52,7 +52,8 @@ async fn frontend(files: ServeDir, page: ServeFile, request: Request) -> Respons
         .rsplit('/')
         .next()
         .is_some_and(|last| last.contains('.'));
-    let cache = if path.starts_with("/assets/") {
+    // Only a built asset is immutable; the page is not, wherever it is served.
+    let cache = if names_a_file && path.starts_with("/assets/") {
         IMMUTABLE
     } else {
         REVALIDATE

@@ -6,6 +6,9 @@ BETTERLEAKS_VERSION=1.10.1
 BETTERLEAKS_IMAGE=ghcr.io/betterleaks/betterleaks@sha256:f345c1ac502abc51ec334c3d815ad18a79fb1509555fc4496b2cb88e760681b3
 
 ROOT=$(git rev-parse --show-toplevel) || exit 1
+# The git directory all worktrees share. In a linked worktree (`git worktree add`) it
+# lies outside ROOT, and the main worktree next to it holds .private-terms.
+COMMON=$(git rev-parse --path-format=absolute --git-common-dir) || exit 1
 TMP=$(mktemp -d) || exit 1
 trap 'rm -rf "$TMP"' EXIT
 FAILED=0
@@ -33,7 +36,9 @@ betterleaks_run() {
         [ "$(betterleaks version 2>/dev/null)" = "$BETTERLEAKS_VERSION" ]; then
         (cd "$ROOT" && betterleaks "$@" --redact --no-banner --log-level warn)
     elif command -v docker >/dev/null 2>&1; then
-        docker run --rm -i --user "$(id -u):$(id -g)" -v "$ROOT:/repo" -w /repo \
+        # The shared git directory at its own path too: a linked worktree's .git is a
+        # file that points into it by absolute path.
+        docker run --rm -i --user "$(id -u):$(id -g)" -v "$ROOT:/repo" -v "$COMMON:$COMMON" -w /repo \
             "$BETTERLEAKS_IMAGE" "$@" --redact --no-banner --log-level warn
     else
         printf 'iasion hook: needs betterleaks %s or Docker to scan for secrets.\n' \
@@ -48,6 +53,10 @@ betterleaks_run() {
 # Returns 1, with a warning, if there are none.
 terms_load() {
     file="$ROOT/.private-terms"
+    # A linked worktree has none of its own; the main worktree's applies.
+    if [ ! -f "$file" ]; then
+        file="$(dirname "$COMMON")/.private-terms"
+    fi
     if [ ! -f "$file" ]; then
         printf 'iasion hook: no .private-terms file; private terms are not checked.\n' >&2
         return 1

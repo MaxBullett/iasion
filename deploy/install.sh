@@ -153,8 +153,12 @@ if ! secret_exists iasion-tunnel-token; then
     elif [ -t 0 ]; then
         printf 'Cloudflare Tunnel token (docs/deployment.md): '
         stty -echo
+        # Echo comes back even if the prompt is left with Ctrl-C.
+        trap 'stty echo' EXIT
+        trap 'exit 130' INT TERM
         read -r token
         stty echo
+        trap - EXIT INT TERM
         printf '\n'
     else
         fail "no tunnel token: put it into $CONF/tunnel-token or run this in a terminal"

@@ -137,6 +137,19 @@ async fn caches_assets_but_not_the_page() {
     assert_eq!(header(&route, "cache-control"), "no-cache");
 }
 
+/// A path under `/assets/` that names no file gets the page, which changes with every
+/// release, so it is revalidated like the page anywhere else.
+#[tokio::test]
+async fn the_page_under_assets_is_not_cached() {
+    let app = app().await;
+
+    let reply = get(&app, "/assets/missing", None).await;
+
+    assert_eq!(reply.status, StatusCode::OK);
+    assert_eq!(reply.body, INDEX);
+    assert_eq!(header(&reply, "cache-control"), "no-cache");
+}
+
 // --- The API next to it -----------------------------------------------------------
 
 /// Decision 13: `/api` is verified as before, whatever the path.
