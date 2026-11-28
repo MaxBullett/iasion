@@ -11,6 +11,7 @@ mod web;
 
 use std::env;
 use std::fs;
+use std::path::Path;
 use std::process::{Command, ExitCode};
 
 /// Context crates, built and tested with their `postgres` feature off (ADR-0034,
@@ -44,6 +45,12 @@ commands:
   hooks-test     run the tests of the git hooks (needs Docker or Betterleaks)";
 
 fn main() -> ExitCode {
+    // Every path below is relative to the workspace root. Without this, running from
+    // a subdirectory would read the wrong files, or make a second dev key pair there.
+    if let Err(error) = env::set_current_dir(workspace_root()) {
+        eprintln!("xtask: cannot change to the workspace root: {error}");
+        return ExitCode::FAILURE;
+    }
     let args: Vec<String> = env::args().skip(1).collect();
     let result = match args.first().map(String::as_str) {
         Some("check") => check(),
@@ -255,7 +262,24 @@ fn run(program: &str, args: &[&str]) -> Result<(), String> {
     }
 }
 
+/// The workspace root: the parent of this crate's directory.
+fn workspace_root() -> &'static Path {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    manifest_dir.parent().unwrap_or(manifest_dir)
+}
+
 /// The cargo that runs `xtask`, so the pinned toolchain is used throughout.
 pub fn cargo_binary() -> String {
     env::var("CARGO").unwrap_or_else(|_| "cargo".to_string())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn the_workspace_root_holds_the_workspace_manifest() {
+        let manifest = fs::read_to_string(workspace_root().join("Cargo.toml")).unwrap();
+        assert!(manifest.contains("[workspace]"));
+    }
 }
