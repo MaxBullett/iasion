@@ -56,16 +56,16 @@ shell ([ADR-0044](docs/adr/0044-dev-script.md)); on Windows, from WSL or Git Bas
 
 `./dev up` creates `.env` from `.env.example` if there is none (its placeholder values
 work for development), and starts the database, `access-dev`, the API on port 8080 and
-the Vite dev server on port 5173. Changes reload by themselves: the API rebuilds,
-migrates and restarts on a change to the Rust code, Cargo's files or a migration, and
-the frontend reloads in the browser. A build that fails leaves the API stopped until the
-next change; `./dev logs api` shows why. After changing `.env`, `./dev restart`.
+the Vite dev server on port 5173. The frontend reloads in the browser on change. After
+changing Rust code, Cargo's files, a migration or `.env`, `./dev restart` builds the API
+and, if the build succeeds, migrates and restarts it; if not, it prints the error and
+the running API stays as it was ([ADR-0045](docs/adr/0045-api-restarts-on-demand.md)).
 
 | Command | What it does |
 |---|---|
 | `./dev up`, `./dev down` | Start and stop everything. `./dev down --wipe` also removes the dev database. |
 | `./dev status`, `./dev logs [service]` | What runs, and its logs (`api`, `web`, `db`, `access-dev`) |
-| `./dev restart [service]` | Restart a service, `api` by default |
+| `./dev restart [service]` | Rebuild and restart the API, or restart another service: `./dev restart web` installs changed frontend dependencies |
 | `./dev psql` | psql on the dev database, as the application role |
 | `./dev token [--email <email>]` | A dev Access token |
 | `./dev check`, `./dev test` | What CI's `rust` job runs, and every test |
@@ -86,7 +86,8 @@ devcontainer does it). Put private terms that must never be committed into
 
 The devcontainer is the same Compose project: open the repository in it and use
 `cargo xtask` directly (`cargo xtask` with no command lists them). `./dev` does not run
-inside it, but `./dev up` on the host next to it works. With a toolchain of your own
+inside it, but `./dev up` on the host next to it works; `./dev down` stops the
+devcontainer's workspace too. With a toolchain of your own
 (Rust from `rust-toolchain.toml`, Node and pnpm at their pinned versions),
 `docker compose up -d` starts the database and `access-dev`, after
 `mkdir -p .dev/access/public`; direnv users get `.env` loaded through `.envrc`, and a

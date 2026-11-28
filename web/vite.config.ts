@@ -21,7 +21,7 @@ export default defineConfig(({ command }) => ({
   server: {
     port: 5173,
     strictPort: true,
-    // Where the repository's mount passes no file events (ADR-0044, decision 5).
+    // Where the repository's mount passes no file events (ADR-0045, decision 2).
     watch: process.env['IASION_DEV_POLL'] ? { usePolling: true, interval: 1000 } : undefined,
     proxy:
       command === 'serve'

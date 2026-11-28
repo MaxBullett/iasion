@@ -42,17 +42,20 @@ services:
       # `./dev` refuses to run in here (ADR-0044, decision 8).
       IASION_WORKSPACE: "1"
 
-  # One shot before the app: the dev key pair that access-dev serves.
+  # One shot before the app: the dev key pair that access-dev serves, and the API's
+  # build, so that one that fails stops `./dev up` at once (ADR-0045, decision 3).
   prepare:
     <<: *toolchain
     profiles: [app]
     pull_policy: never
     environment: *app-environment
-    command: ["sh", "-c", "cargo xtask dev-token >/dev/null"]
+    command:
+      - sh
+      - -c
+      - cargo xtask dev-token >/dev/null && cargo build --quiet --package iasion-server
 
-  # The API on port 8080: migrates and serves, and does both again on every change to
-  # the Rust code, Cargo's files or a migration. A failed build leaves it stopped, with
-  # the error in its log, until the next change.
+  # The API on port 8080: migrates and serves. `./dev restart` builds it again and then
+  # recreates it (ADR-0045).
   api:
     <<: *toolchain
     profiles: [app]
@@ -71,20 +74,18 @@ services:
       - sh
       - -c
       - >-
-        exec watchexec --restart --debounce 500ms $${IASION_DEV_POLL:+--poll 1s}
-        --watch-non-recursive . --watch crates --exts rs,toml,lock,sql --
-        'cargo run --quiet --package iasion-server -- migrate
-        && exec cargo run --quiet --package iasion-server -- serve'
+        cargo run --quiet --package iasion-server -- migrate
+        && exec cargo run --quiet --package iasion-server -- serve
     healthcheck:
       test: ["CMD", "curl", "-fsS", "-o", "/dev/null", "http://127.0.0.1:8081/health"]
       interval: 2s
       timeout: 5s
-      # The first build takes minutes.
-      start_period: 30m
+      # Built already, by `prepare` or `./dev restart`.
+      start_period: 2m
       start_interval: 2s
 
   # The frontend on port 5173, with Vite's hot reload; `/api` goes to the API with a
-  # dev token. A change to the dependencies installs them and starts it again.
+  # dev token. `./dev restart web` installs changed dependencies.
   web:
     <<: *toolchain
     profiles: [app]
@@ -101,10 +102,8 @@ services:
       - sh
       - -c
       - >-
-        exec watchexec --restart --debounce 500ms $${IASION_DEV_POLL:+--poll 1s}
-        --watch-non-recursive web --filter package.json --filter pnpm-lock.yaml --
-        'pnpm --dir web install --frozen-lockfile --config.confirm-modules-purge=false
-        && exec pnpm --dir web dev --host 0.0.0.0'
+        pnpm --dir web install --frozen-lockfile --config.confirm-modules-purge=false
+        && exec pnpm --dir web dev --host 0.0.0.0
     healthcheck:
       test: ["CMD", "curl", "-fsS", "-o", "/dev/null", "http://127.0.0.1:5173/"]
       interval: 2s

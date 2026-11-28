@@ -11,10 +11,12 @@ usage() {
 Usage: ./dev <command>
 
   up                  Start everything: the database, access-dev, the API on
-                      http://localhost:8080 and the frontend on http://localhost:5173.
-                      Both rebuild and reload on change.
+                      http://localhost:8080 and the frontend on http://localhost:5173,
+                      which reloads on change.
   down [--wipe]       Stop everything. The dev database stays; --wipe removes it.
-  restart [service]   Restart a service, api by default, e.g. after changing .env.
+  restart [service]   Restart a service, api by default: after changing Rust code, a
+                      migration or .env. The API is built first and restarted only if
+                      the build succeeds; restart web installs changed dependencies.
   status              What runs.
   logs [service]      The logs of every service, or of one, followed.
   psql                psql on the dev database, as the application role.
@@ -49,6 +51,11 @@ prepare_host() {
     mkdir -p .dev/access/public
 }
 
+# The database volume's name, which depends on the Compose project's name.
+db_volume() {
+    compose config --format json | sed -n 's/.*"name": *"\([^"]*_db-data\)".*/\1/p' | head -n 1
+}
+
 # The workspace container, started if it is not running, for the commands run in it.
 in_workspace() {
     prepare_host
@@ -75,17 +82,19 @@ case "$command" in
         say "starting; the first build of the API takes a few minutes (./dev logs api)"
         if ! compose up --detach --remove-orphans --wait --wait-timeout 1800; then
             compose ps --all
-            fail "not everything started; ./dev logs <service> shows why"
+            fail "not everything started; ./dev logs prepare shows a failed build, ./dev logs <service> the rest"
         fi
         say "up: the app on http://localhost:5173, with the built frontend on http://localhost:8080"
-        say "it rebuilds and reloads on change; ./dev logs api shows a failed build"
+        say "the frontend reloads on change; after changing Rust code or a migration, ./dev restart"
         ;;
     down)
         case "${1:-}" in
             '') compose down ;;
             --wipe)
+                volume=$(db_volume)
+                [ -n "$volume" ] || fail "cannot tell the dev database's volume from the Compose configuration"
                 compose down
-                docker volume rm --force iasion_db-data >/dev/null
+                docker volume rm --force "$volume" >/dev/null
                 say "removed the dev database; ./dev up creates a new one"
                 ;;
             *) fail "down takes only --wipe" ;;
@@ -93,7 +102,16 @@ case "$command" in
         ;;
     restart)
         [ "$#" -le 1 ] || fail "restart takes one service"
-        compose restart "${1:-api}"
+        service=${1:-api}
+        [ -n "$(compose ps --status running --quiet "$service")" ] || fail "$service is not running; ./dev up starts everything"
+        if [ "$service" = api ]; then
+            # In a container of its own, so the running API keeps serving meanwhile.
+            compose run --rm --no-deps -T api cargo build --quiet --package iasion-server ||
+                fail "the build failed; the running API is unchanged"
+        fi
+        compose --progress quiet up --detach --wait --force-recreate --no-deps "$service" ||
+            fail "$service did not start again; ./dev logs $service shows why"
+        say "restarted $service"
         ;;
     status)
         compose ps --all

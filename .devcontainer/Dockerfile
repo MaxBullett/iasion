@@ -38,24 +38,6 @@ RUN set -eu; \
     rm -rf "/tmp/$name" "/tmp/$name.tar.gz"; \
     cargo-deny --version
 
-# watchexec rebuilds and restarts the app in development on change (ADR-0044). Not seen
-# by Dependabot: bump the version and both checksums by hand.
-ARG WATCHEXEC_VERSION=2.8.0
-RUN set -eu; \
-    case "$TARGETARCH" in \
-      amd64) sum=35ea667cbe4bc96c23ba2a1f46c94c46bc385b67165e3bf621c0e7e4959aa99b; arch=x86_64 ;; \
-      arm64) sum=3961878b21e3c1729279322f4007dd5bbf0032110fbcb5e7b983946a9ceb3bf6; arch=aarch64 ;; \
-      *) echo "unsupported architecture: $TARGETARCH" >&2; exit 1 ;; \
-    esac; \
-    name="watchexec-${WATCHEXEC_VERSION}-${arch}-unknown-linux-musl"; \
-    curl -fsSL -o "/tmp/$name.tar.xz" \
-      "https://github.com/watchexec/watchexec/releases/download/v${WATCHEXEC_VERSION}/$name.tar.xz"; \
-    echo "$sum  /tmp/$name.tar.xz" | sha256sum -c -; \
-    tar -xJf "/tmp/$name.tar.xz" -C /tmp; \
-    mv "/tmp/$name/watchexec" /usr/local/bin/; \
-    rm -rf "/tmp/$name" "/tmp/$name.tar.xz"; \
-    watchexec --version
-
 # psql for the dev database, shellcheck for `cargo xtask shellcheck` (ADR-0044).
 RUN apt-get update \
     && apt-get install -y --no-install-recommends postgresql-client shellcheck \
