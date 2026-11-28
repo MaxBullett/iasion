@@ -1,8 +1,9 @@
 # The one image of Iasion (ADR-0040, decisions 1 to 3): the backend binary and the
 # built frontend, which the backend serves, on a distroless runtime as a non-root user.
-# The versions match .node-version, web/package.json and rust-toolchain.toml.
+# The versions match .node-version, web/package.json and rust-toolchain.toml; the base
+# images are pinned by digest too, which Dependabot updates with the tag (ADR-0039).
 
-FROM node:26.13.1-trixie-slim AS web
+FROM node:26.13.1-trixie-slim@sha256:abe7e5a82b61a8ef67b315b85497c9e65173387ccf2f4a029248184b8e020be5 AS web
 # Node no longer ships corepack; pnpm at the version web/package.json pins (ADR-0043).
 ARG PNPM_VERSION=12.23.0
 RUN npm install --global --no-fund --no-audit "pnpm@${PNPM_VERSION}"
@@ -12,7 +13,8 @@ RUN pnpm install --frozen-lockfile
 COPY web/ ./
 RUN pnpm run build
 
-FROM rust:1.100.0 AS server
+# Debian 13, like the runtime image below.
+FROM rust:1.100.0-slim-trixie@sha256:3b199fd6db7d709274df56565b8f4003f9e30d7bfcff9d53148c86053b7855e2 AS server
 # The toolchain of rust-toolchain.toml, without the components it lists for development.
 ENV RUSTUP_TOOLCHAIN=1.100.0
 # The commit, compiled into the binary and shown by the app; CI passes the SHA.
